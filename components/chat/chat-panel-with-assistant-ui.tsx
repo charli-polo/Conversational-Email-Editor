@@ -172,7 +172,7 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
   // Wrapper for handleSubmit to store which section was edited and pass dynamic data
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     // Store the section being edited in ref (to avoid stale closure in onFinish)
-    editingSectionRef.current = selectedSection;
+    editingSectionRef.current = selectedSection || null;
 
     if (selectedSection) {
       setLastEditedSection(selectedSection.label);
