@@ -91,6 +91,8 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
       html: currentHtml,
     },
     onFinish: (message) => {
+      console.log('✅ Generation complete');
+
       const content = message.content;
 
       // Check if response is HTML (more robust)
