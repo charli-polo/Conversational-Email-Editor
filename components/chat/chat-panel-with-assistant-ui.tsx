@@ -2,7 +2,7 @@
 
 import { useChat } from 'ai/react';
 import { useEffect, useRef, useState } from 'react';
-import { EmailSection } from '@/components/preview/email-preview';
+import { EmailSection, EmailElement } from '@/components/preview/email-preview';
 import { SelectedSectionCard } from './selected-section-card';
 import { mergeSectionHtml } from '@/lib/merge-section';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { X } from 'lucide-react';
 interface ChatPanelProps {
   currentHtml: string;
   selectedSection?: EmailSection | null;
+  selectedElement?: EmailElement | null;
   onHtmlUpdate: (html: string, skipHistory?: boolean) => void;
   onSectionDeselect?: () => void;
   onGenerationComplete?: () => void;
@@ -42,6 +43,7 @@ Could you try being more specific or selecting a section first?`;
 export function ChatPanel({
   currentHtml,
   selectedSection,
+  selectedElement,
   onHtmlUpdate,
   onSectionDeselect,
   onGenerationComplete,
@@ -49,12 +51,16 @@ export function ChatPanel({
 }: ChatPanelProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [thinkingTime, setThinkingTime] = useState(0);
   const thinkingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [lastEditedSection, setLastEditedSection] = useState<string | null>(null);
+  const [lastEditSummary, setLastEditSummary] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
-  // Use ref to track the section being edited (to avoid stale closure in onFinish)
+  // Use ref to track the section or element being edited (to avoid stale closure in onFinish)
   const editingSectionRef = useRef<EmailSection | null>(null);
+  const editingElementRef = useRef<EmailElement | null>(null);
 
   // Throttle streaming updates
   const lastStreamUpdateRef = useRef<number>(0);
@@ -93,7 +99,20 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
     onFinish: (message) => {
       console.log('✅ Generation complete');
 
-      const content = message.content;
+      let content = message.content;
+      let summary: string | null = null;
+
+      // Extract SUMMARY if present
+      if (content.startsWith('SUMMARY:')) {
+        const lines = content.split('\n');
+        const summaryLine = lines[0];
+        summary = summaryLine.replace('SUMMARY:', '').trim();
+        content = lines.slice(1).join('\n').trim();
+        console.log('📝 Edit summary:', summary);
+      }
+
+      // Remove markdown code fences if present (```html ... ``` or ``` ... ```)
+      content = content.replace(/^```html\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
 
       // Check if response is HTML (more robust)
       const isHtml = content.includes('<table') ||
@@ -102,19 +121,62 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
         content.includes('<html>');
 
       if (isHtml) {
-        // Use the ref to get the section that was being edited
+        // Use the ref to get the section or element that was being edited
         const editingSection = editingSectionRef.current;
+        const editingElement = editingElementRef.current;
 
-        // If section is selected, merge; otherwise full replace
-        if (editingSection) {
-          const merged = mergeSectionHtml(currentHtml, editingSection.id, content);
-          onHtmlUpdate(merged);
-        } else {
-          onHtmlUpdate(content);
+        // Validation: Check if AI response is suspiciously short (might have lost sections)
+        if (!editingSection && !editingElement) {
+          // Full email editing - check for content loss
+          const inputSections = (currentHtml.match(/data-section-id=/g) || []).length;
+          const outputSections = (content.match(/data-section-id=/g) || []).length;
+          const inputImages = (currentHtml.match(/<img/g) || []).length;
+          const outputImages = (content.match(/<img/g) || []).length;
+
+          if (outputSections < inputSections || outputImages < inputImages) {
+            console.error('⚠️ AI response lost content!', {
+              inputSections,
+              outputSections,
+              inputImages,
+              outputImages
+            });
+
+            // Show error to user
+            const lostSections = inputSections - outputSections;
+            const lostImages = inputImages - outputImages;
+            const errorMsg = `⚠️ The AI's response lost some content (${lostSections} section(s), ${lostImages} image(s)). Please try again or rephrase your request.`;
+            setValidationError(errorMsg);
+
+            // Don't apply the update
+            console.error('Response rejected - content loss detected');
+            return;
+          }
+
+          // Clear any previous validation error
+          setValidationError(null);
         }
 
-        // Deselect section after successful edit
-        if (editingSection && onSectionDeselect) {
+        // If element is selected, merge using the parent section
+        // If section is selected, merge using section
+        // Otherwise full replace
+        if (editingElement) {
+          // For elements, use the parent section for merging
+          const merged = mergeSectionHtml(currentHtml, editingElement.sectionId, content);
+          onHtmlUpdate(merged);
+          // Save the summary for display
+          setLastEditSummary(summary);
+        } else if (editingSection) {
+          const merged = mergeSectionHtml(currentHtml, editingSection.id, content);
+          onHtmlUpdate(merged);
+          // Save the summary for display
+          setLastEditSummary(summary);
+        } else {
+          onHtmlUpdate(content);
+          setLastEditSummary(summary);
+        }
+
+        // Deselect section/element after successful edit
+        if ((editingSection || editingElement) && onSectionDeselect) {
           onSectionDeselect();
         }
 
@@ -123,8 +185,9 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
           onGenerationComplete();
         }
 
-        // Clear the editing ref
+        // Clear the editing refs
         editingSectionRef.current = null;
+        editingElementRef.current = null;
       } else if (content.trim().startsWith('{') && content.includes('error')) {
         console.error('AI returned error:', content);
       }
@@ -168,26 +231,50 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
     };
   }, [isLoading]);
 
+  // Auto-resize textarea as user types
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+
+    // Set height based on content, max 3 lines (~72px for 3 lines with text-sm)
+    const maxHeight = 72; // Approx 3 lines
+    const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = `${newHeight}px`;
+  }, [input]);
+
   // Streaming preview disabled for cleaner UX - only show final result
   // The blur animation will handle the loading state visually
 
-  // Wrapper for handleSubmit to store which section was edited and pass dynamic data
+  // Wrapper for handleSubmit to store which section/element was edited and pass dynamic data
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    // Store the section being edited in ref (to avoid stale closure in onFinish)
-    editingSectionRef.current = selectedSection || null;
+    // Clear any previous validation error
+    setValidationError(null);
 
-    if (selectedSection) {
+    // Store the section or element being edited in ref (to avoid stale closure in onFinish)
+    editingSectionRef.current = selectedSection || null;
+    editingElementRef.current = selectedElement || null;
+
+    if (selectedElement) {
+      setLastEditedSection(selectedElement.label);
+    } else if (selectedSection) {
       setLastEditedSection(selectedSection.label);
     } else {
       setLastEditedSection(null);
     }
 
-    // Pass the current selectedSection values dynamically
+    // Pass the current selectedSection/selectedElement values dynamically
+    // Element takes priority over section
     originalHandleSubmit(e, {
       body: {
         html: currentHtml,
         selectedSectionId: selectedSection?.id,
         selectedSectionHtml: selectedSection?.html,
+        selectedElementId: selectedElement?.id,
+        selectedElementType: selectedElement?.type,
+        selectedElementTag: selectedElement?.tag,
       }
     });
   };
@@ -235,6 +322,11 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
                 return null;
               }
 
+              // Don't show the last assistant message if we're loading (avoid showing partial streaming)
+              if (message.role === 'assistant' && isLoading && index === messages.length - 1) {
+                return null;
+              }
+
               // Check if message contains HTML (more robust check)
               const content = message.content.trim();
               const isHtmlMessage = message.role === 'assistant' && (
@@ -243,13 +335,9 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
                 content.includes('<table') ||
                 content.includes('<tr') ||
                 content.includes('bgcolor=') ||
-                content.includes('cellpadding=')
+                content.includes('cellpadding=') ||
+                content.startsWith('SUMMARY:')
               );
-
-              // Don't show assistant messages that are HTML during streaming
-              if (isHtmlMessage && isLoading && index === messages.length - 1) {
-                return null;
-              }
 
               // Don't show HTML messages at all - replace with summary
               if (isHtmlMessage) {
@@ -258,8 +346,10 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
                     key={index}
                     className="flex justify-start"
                   >
-                    <div className="w-full text-sm text-foreground">
-                      {lastEditedSection
+                    <div className="w-full text-sm text-foreground whitespace-pre-wrap">
+                      {lastEditSummary
+                        ? lastEditSummary
+                        : lastEditedSection
                         ? `✓ Updated "${lastEditedSection}" section`
                         : '✓ Updated email'
                       }
@@ -304,6 +394,15 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
               );
             })}
 
+            {/* Validation error */}
+            {validationError && (
+              <div className="flex justify-start">
+                <div className="px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                  {validationError}
+                </div>
+              </div>
+            )}
+
             {/* Thinking loader */}
             {isLoading && (
               <div className="flex justify-start">
@@ -337,6 +436,24 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
               </div>
             )}
 
+            {/* Suggestion chips - inside scrollable area */}
+            {suggestions.length > 0 && (
+              <div className="px-4 mb-4">
+                <div className="flex flex-wrap gap-2">
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => handleInputChange({ target: { value: suggestion } } as any)}
+                      className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors text-foreground"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </>
         )}
@@ -344,31 +461,15 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
 
       {/* Input area */}
       <div className="p-4 bg-background">
-        {/* Suggestion chips */}
-        {suggestions.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {suggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => handleInputChange({ target: { value: suggestion } } as any)}
-                className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors text-foreground"
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="relative border border-border rounded-[24px] bg-background focus-within:ring-2 focus-within:ring-ring transition-shadow">
-          {/* Selected section chip - shown inside the input area */}
-          {selectedSection && onSectionDeselect && (
+          {/* Selected section or element chip - shown inside the input area */}
+          {(selectedSection || selectedElement) && onSectionDeselect && (
             <div className="px-3 pt-2 pb-1">
               <Badge
                 variant="secondary"
                 className="gap-1 pr-1 text-xs font-normal border border-primary/20"
               >
-                {selectedSection.label}
+                {selectedElement ? selectedElement.label : selectedSection?.label}
                 <Button
                   type="button"
                   variant="ghost"
@@ -382,15 +483,26 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
             </div>
           )}
 
-          <div className="flex items-center gap-2 px-3 py-2">
-            {/* Input - using shadcn component */}
-            <Input
-              type="text"
+          <div className="flex items-end gap-2 px-3 py-2">
+            {/* Textarea - auto-expanding */}
+            <textarea
+              ref={textareaRef}
               value={input}
               onChange={handleInputChange}
+              onKeyDown={(e) => {
+                // Submit on Enter (without Shift)
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (input.trim() && !isLoading) {
+                    handleSubmit(e as any);
+                  }
+                }
+              }}
               placeholder="Ask for edits, add sections, refine the tone..."
               disabled={isLoading}
-              className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-2"
+              rows={1}
+              className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none px-2 py-2 text-sm resize-none outline-none min-h-[24px] max-h-[72px] overflow-y-auto scrollbar-hide"
+              style={{ height: '24px' }}
             />
 
             {/* Send button - circular with arrow */}
@@ -398,7 +510,7 @@ Clean layout with dramatic hero, product details + CTA, tech close-up, 4-feature
               type="submit"
               disabled={isLoading || !input.trim()}
               size="icon"
-              className="flex-shrink-0 h-9 w-9 rounded-full bg-muted hover:bg-muted/80 text-foreground disabled:opacity-50"
+              className="flex-shrink-0 h-9 w-9 rounded-full bg-muted hover:bg-muted/80 text-foreground disabled:opacity-50 mb-0.5"
             >
               {isLoading ? (
                 <svg

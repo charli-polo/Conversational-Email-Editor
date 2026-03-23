@@ -39,7 +39,7 @@ Brevo is a SaaS marketing automation platform. Our users are mostly SMB marketer
 
 ## Current Slice
 
-**Slice 6 — Improvements & Enhancements (NEXT)**
+**Slice 7 — E-commerce Self-Service UX (IN PROGRESS)**
 
 **Status:**
 - ✅ Slice 1 complete
@@ -47,7 +47,8 @@ Brevo is a SaaS marketing automation platform. Our users are mostly SMB marketer
 - ✅ Slice 3 complete
 - ✅ Slice 4 complete
 - ✅ Slice 5 complete (Points 1 and 5 deferred)
-- ⏸️ Slice 6 pending
+- ✅ Slice 6 complete (animations & UI design deferred)
+- 🚧 Slice 7 in progress (7.1 complete, 7.2 partial)
 
 **Slice 5 progress:**
 - ⏸️ Point 1: GenerationContext - deferred
@@ -57,6 +58,43 @@ Brevo is a SaaS marketing automation platform. Our users are mostly SMB marketer
 - ⏸️ Point 5: Onboarding empty state - deferred
 
 **Status:** Slice 5 effectively complete (Points 1 and 5 deferred)
+
+**Slice 7 progress:**
+- ✅ Point 7.1: Granular sub-element selection - complete (UI works, AI editing returns helpful error)
+- 🚧 Point 7.2: Image property panel - in progress (see details below)
+- ⏸️ Point 7.3: Conversational UX improvements - pending
+- ⏸️ Point 7.4: Personalization variables - pending
+
+**Slice 7.2 Image Property Panel (Current Session Work):**
+
+Implemented:
+- ✅ Image selection in Design mode shows dedicated property panel
+- ✅ Preview of selected image
+- ✅ "Replace" button with file upload (converts to base64, max 2MB)
+  - Note: Base64 increases email size, not ideal for production
+  - Future: integrate CDN solution (Cloudinary, Vercel Blob)
+- ✅ "Image URL" field for pasting URLs
+- ✅ "Alt text" field for accessibility
+- ✅ "Width" control with:
+  - Input number with spin buttons
+  - Dropdown for unit (px / %)
+  - Instant update via inline CSS styles
+  - Image centering with `margin: 0 auto` to avoid grey zones when resizing
+- ✅ Unified header format: all sections and images show simple title only (no subtitle)
+
+Technical notes:
+- Width updates modify **inline style** (not just HTML attribute) because CSS has priority
+- Parent `<td>` not resized (would break complex layouts) - image centered instead
+- Section background color editing: attempted multiple approaches, settled on "good enough"
+  - Targets main table with `width="600"` or first table
+  - Applies to first `<td>` inside
+  - Known limitation: complex nested structures may not color perfectly
+
+Not yet implemented (from original spec):
+- ⏸️ Unsplash integration
+- ⏸️ Link URL (make image clickable)
+- ⏸️ Height control
+- ⏸️ Alignment control
 
 ## Layout
 
@@ -296,8 +334,8 @@ Use inline styles only. Keep it ~200 lines of clean email HTML. Use placeholder 
 - ✅ Property extraction from HTML (background color, padding, text alignment)
 - ✅ Property updates to HTML (surgical regex targeting `<td>` elements)
 - ✅ Styles preservation (font-family, color, etc. maintained during updates)
-- ⏸️ Bidirectional sync (AI edits → property panel updates) - deferred to Slice 5
-- ⏸️ fetchURL tool (deferred to later slice)
+- ❌  Bidirectional sync (AI edits → property panel updates) - deferred to Slice 5
+- ❌  fetchURL tool (deferred to later slice)
 - **Tech fix:** Regex now correctly targets `<td>` inside `<tr data-section-id>` where actual styles live
 
 ### Slice 4 — Undo/Redo ✅ COMPLETE
@@ -308,11 +346,11 @@ Use inline styles only. Keep it ~200 lines of clean email HTML. Use placeholder 
 - ⏸️ Export functionality deferred to later slice
 
 ### Slice 5 — Polish + Context-Aware Editing ✅ COMPLETE
-- ⏸️ Wire up generationContext (simulated) to AI system prompt - deferred
+- ❌  Wire up generationContext (simulated) to AI system prompt - deferred
 - ✅ Streaming preview with blur + slow pulse animation (Option 1: disabled streaming updates, show only final result with 4s pulse cycle for elegant loading state)
 - ❌ Change highlighting (flash modified sections) - rejected by user, removed
 - ✅ Suggested actions after each edit - complete (3 contextual suggestions as chips above textarea, click to fill input)
-- ⏸️ Onboarding empty state - deferred
+- ❌ Onboarding empty state - deferred
 - ✅ AI section duplication fix - strengthened system prompt to prevent generating multiple `<tr>` elements
 - **Implementation details:**
   - `/api/suggestions` endpoint using GPT-4o-mini
@@ -320,21 +358,78 @@ Use inline styles only. Keep it ~200 lines of clean email HTML. Use placeholder 
   - Chips positioned above textarea, appear after AI generation
   - Click populates input without auto-sending
 
-### Slice 6 — Improvements & Enhancements
-- Add animations with motion.dev (Framer Motion)
+### Slice 6 — Improvements & Enhancements ✅ COMPLETE
+- ⏸️ Add animations with motion.dev (Framer Motion)
   - Smooth transitions when switching between chat and property panel
   - Section selection animations
   - Property panel slide-in/out animations
   - Loading states with skeleton animations
-- Improve overall UI design
+- ⏸️ Improve overall UI design
   - Refine visual hierarchy and spacing
   - Enhance color scheme and typography
   - Polish interactive states (hover, focus, active)
   - Improve responsiveness and polish micro-interactions
-- Enhance sample email
+- ✅ Enhance sample email
   - Create a more realistic, visually appealing email template
   - Better showcase of different section types
   - More professional design that reflects modern email best practices
+
+### Slice 7 — E-commerce Self-Service UX
+**Goal:** Transform the prototype into a usable tool for e-commerce users who need to customize marketing emails quickly.
+
+**1. Granular sub-element selection**
+- Extend the section parser to identify clickable sub-elements within sections:
+  - Headings (`<h1>`, `<h2>`, `<h3>`)
+  - Buttons/CTAs (`<a>` with button styles, `<button>`)
+  - Images (`<img>`)
+  - Text blocks (`<p>`, `<span>`, `<td>` with text content)
+- Click on sub-element → chip shows specific element type (e.g., "H1: Welcome to our sale")
+- AI instructions scope to the selected sub-element only
+- Property panel adapts to show element-specific properties
+
+**2. Image property panel**
+- When an image is selected, Property Panel shows:
+  - **Image source options:**
+    - Upload image (file picker + drag & drop)
+    - Enter URL (text input)
+    - Browse Unsplash (integrated stock photo search)
+  - **Alt text** (accessibility + fallback text)
+  - **Link URL** (optional - make image clickable)
+  - **Width/Height** (dimension controls)
+  - **Alignment** (left, center, right within email layout)
+- Changes update the HTML surgically (target the specific `<img>` tag)
+- Upload handling: consider CDN solutions (uploadthing, cloudinary, or Vercel Blob)
+- Unsplash integration: use Unsplash API for stock photo search & selection
+
+**3. Conversational UX improvements**
+- **Larger textarea**
+  - Increase default height from 1 line to 3-4 lines
+  - Auto-expand as user types (up to max-height)
+  - Better for longer, detailed prompts (e.g., "Add a product section with 3 items: Item 1...")
+- **Inline suggestion context**
+  - Show suggestions inline with the conversation flow (not just after generation)
+  - Example: After selecting an image, suggest "Change this image" or "Add alt text"
+  - Context-aware: different suggestions based on what's selected
+- **Generation context notes**
+  - Display a small note/badge showing what was generated/edited
+  - Example: "✓ Updated Hero heading" instead of hiding all HTML
+  - Preserve context for undo/redo understanding
+  - Optional: Show before/after preview thumbnails in chat history
+
+**4. Personalization variables (merge tags)**
+- Add a variable picker UI — a button near the textarea that opens a list of available variables
+- Variables use `{{double_curly}}` syntax: `{{first_name}}`, `{{last_name}}`, `{{company}}`, `{{unsubscribe_link}}`, etc.
+- Clicking a variable inserts it at cursor position in the textarea or directly into the email
+- **Preview mode toggle:** switch between "template view" (shows raw `{{variables}}`) and "preview view" (replaces variables with sample values like "Jean", "Acme Corp")
+- **Variable definitions panel:** small UI to define custom variables and their preview values
+- **AI awareness:** system prompt includes the list of available variables so the AI can use them naturally (e.g., "Add a personalized greeting" → AI writes `Bonjour {{first_name}},`)
+- Out of scope: real Brevo contact data integration (prototype only)
+
+**Implementation priority:**
+1. Granular selection (biggest UX impact)
+2. Image property panel with upload/Unsplash (unblocks real use case)
+3. Conversational improvements (polish & usability)
+4. Personalization variables (merge tags)
 
 ## Email HTML Constraints (for AI prompts)
 
@@ -355,15 +450,58 @@ These constraints must be baked into the AI agent's system prompt:
 ### High Priority (Fix before prod)
 - **Testing missing**: No Playwright tests yet (established workflow rule not followed)
 
+### Critical Limitation: Granular Element Editing
+
+**Issue:** Conversational editing of individual elements (text blocks, prices, small content) does not work reliably with current LLM capabilities (GPT-4o, GPT-4o-mini).
+
+**Why it fails:**
+- Email HTML is structurally complex (nested `<table>` layouts, inline styles, data attributes)
+- LLMs excel at generating complete HTML but struggle with surgical modifications
+- When instructed to change "just the price text", the AI often:
+  - Duplicates elements (adds extra images, sections)
+  - Removes or loses content unintentionally
+  - Breaks the table structure
+  - Ignores preservation instructions despite strict prompts
+
+**What was attempted:**
+- ✅ Granular selection UI (works perfectly - users can select headings, text, images, buttons)
+- ✅ Scoped API requests (only send the parent section HTML, not full email)
+- ✅ Enhanced prompts (explicit instructions to change only the selected element)
+- ✅ Multiple model attempts (GPT-4o, GPT-4o-mini)
+- ✅ Validation rules in prompts (e.g., "count your `<tr>` tags", "do not add images")
+- ❌ Result: AI still modifies more than requested ~60% of the time
+
+**Current workaround (implemented in Slice 7.1):**
+- When a granular element is selected, the API returns a helpful error message explaining:
+  - The limitation
+  - Why it happens
+  - What works instead (section-level editing, Visual Editor)
+- Users can still edit entire sections via chat (works reliably)
+- Users can use the Visual Editor for precise property changes (background, padding, alignment)
+
+**Future solutions to explore:**
+1. **Structured output approach**: Instead of returning HTML, have AI return JSON with change instructions:
+   ```json
+   { "elementId": "element-section-3-text-4", "newValue": "100 EUR" }
+   ```
+   Then apply the change client-side with precise DOM manipulation.
+
+2. **Dedicated fine-tuned model**: Train a model specifically for surgical HTML edits on email templates.
+
+3. **Hybrid approach**: Use AI for creative/complex changes, use direct form inputs for simple value changes (text, numbers, colors).
+
+4. **Component-based architecture**: Break emails into React-like components where each component manages its own state, making edits more predictable.
+
+**Decision needed:**
+Discuss with team whether to invest in solution 1-4 or keep the current limitation (section-level + Visual Editor only) for MVP.
+
 ### Medium Priority (Optimize when time permits)
 - **Parse-sections performance**: Called on every HTML change, could debounce or optimize
 - **Parse-sections error handling**: Occasional "Unexpected end of JSON input" error (empty request body)
-- **AI error messages**: Not displayed prominently to user when AI returns `{"error": "..."}`
 
 ### Low Priority (Nice to have)
 - **Streaming preview**: Currently updates on completion, not as tokens arrive (Slice 5)
 - **Change highlighting**: No visual indication of what changed (Slice 5)
-- **Undo/redo**: Not implemented yet (Slice 4)
 
 ## Open Decisions (resolve as we go)
 

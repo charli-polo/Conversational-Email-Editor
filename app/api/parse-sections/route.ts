@@ -8,6 +8,17 @@ export interface EmailSection {
   index: number; // position in the email
 }
 
+export type ElementType = 'heading' | 'button' | 'image' | 'text' | 'link';
+
+export interface EmailElement {
+  id: string; // e.g. "element-section-0-h1-0"
+  sectionId: string; // parent section ID
+  type: ElementType; // type of element
+  tag: string; // HTML tag name (h1, img, a, p, etc.)
+  label: string; // human-readable description
+  preview: string; // text content or alt text preview
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { html } = await req.json();
@@ -19,9 +30,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { sections, annotatedHtml } = parseEmailSections(html);
+    const { sections, elements, annotatedHtml } = parseEmailSections(html);
 
-    return NextResponse.json({ sections, annotatedHtml });
+    return NextResponse.json({ sections, elements, annotatedHtml });
   } catch (error) {
     console.error('Error parsing sections:', error);
     return NextResponse.json(
@@ -31,9 +42,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function parseEmailSections(html: string): { sections: EmailSection[]; annotatedHtml: string } {
+function parseEmailSections(html: string): { sections: EmailSection[]; elements: EmailElement[]; annotatedHtml: string } {
   const $ = cheerio.load(html);
   const sections: EmailSection[] = [];
+  const elements: EmailElement[] = [];
 
   // Find the main 600px email table
   // Strategy: find table with width="600" or style containing "width: 600"
@@ -48,22 +60,23 @@ function parseEmailSections(html: string): { sections: EmailSection[]; annotated
 
     if (fallbackTable.length === 0) {
       console.warn('Could not find main email table (width="600")');
-      return { sections: [], annotatedHtml: html };
+      return { sections: [], elements: [], annotatedHtml: html };
     }
 
-    const extractedSections = extractSectionsFromTable(fallbackTable, $);
-    return { sections: extractedSections, annotatedHtml: $.html() };
+    const { sections: extractedSections, elements: extractedElements } = extractSectionsFromTable(fallbackTable, $);
+    return { sections: extractedSections, elements: extractedElements, annotatedHtml: $.html() };
   }
 
-  const extractedSections = extractSectionsFromTable(mainTable, $);
-  return { sections: extractedSections, annotatedHtml: $.html() };
+  const { sections: extractedSections, elements: extractedElements } = extractSectionsFromTable(mainTable, $);
+  return { sections: extractedSections, elements: extractedElements, annotatedHtml: $.html() };
 }
 
 function extractSectionsFromTable(
   table: cheerio.Cheerio<any>,
   $: cheerio.CheerioAPI
-): EmailSection[] {
+): { sections: EmailSection[]; elements: EmailElement[] } {
   const sections: EmailSection[] = [];
+  const elements: EmailElement[] = [];
 
   // Get direct <tr> children of the main table
   // Try direct <tr> first, then look in <tbody>
@@ -79,7 +92,11 @@ function extractSectionsFromTable(
     const sectionId = `section-${index}`;
     $row.attr('data-section-id', sectionId);
 
-    // Extract HTML for this section
+    // Extract sub-elements from this section
+    const sectionElements = extractElementsFromSection($row, $, sectionId);
+    elements.push(...sectionElements);
+
+    // Extract HTML for this section (after adding element IDs)
     const sectionHtml = $.html($row);
 
     // Generate a human-readable label based on content
@@ -93,7 +110,129 @@ function extractSectionsFromTable(
     });
   });
 
-  return sections;
+  return { sections, elements };
+}
+
+function extractElementsFromSection(
+  row: cheerio.Cheerio<any>,
+  $: cheerio.CheerioAPI,
+  sectionId: string
+): EmailElement[] {
+  const elements: EmailElement[] = [];
+  let elementCounter = 0;
+
+  // Extract headings (h1, h2, h3, h4, h5, h6)
+  row.find('h1, h2, h3, h4, h5, h6').each((_, el) => {
+    const $el = $(el);
+    const tag = el.name;
+    const text = $el.text().trim();
+
+    if (text.length > 0) {
+      const elementId = `element-${sectionId}-${tag}-${elementCounter++}`;
+      $el.attr('data-element-id', elementId);
+      $el.attr('data-element-type', 'heading');
+
+      elements.push({
+        id: elementId,
+        sectionId,
+        type: 'heading',
+        tag,
+        label: `${tag.toUpperCase()}: ${text.substring(0, 30)}${text.length > 30 ? '...' : ''}`,
+        preview: text,
+      });
+    }
+  });
+
+  // Extract images
+  row.find('img').each((_, el) => {
+    const $el = $(el);
+    const alt = $el.attr('alt') || 'Image';
+    const src = $el.attr('src') || '';
+
+    const elementId = `element-${sectionId}-img-${elementCounter++}`;
+    $el.attr('data-element-id', elementId);
+    $el.attr('data-element-type', 'image');
+
+    // Keep label short (max 25 chars for alt text)
+    const shortAlt = alt.length > 25 ? alt.substring(0, 25) + '...' : alt;
+
+    elements.push({
+      id: elementId,
+      sectionId,
+      type: 'image',
+      tag: 'img',
+      label: `Image: ${shortAlt}`,
+      preview: alt,
+    });
+  });
+
+  // Extract buttons (links with button-like styles)
+  row.find('a').each((_, el) => {
+    const $el = $(el);
+    const style = $el.attr('style') || '';
+    const text = $el.text().trim();
+
+    // Check if it's a button (has background-color or looks like a button)
+    const isButton = style.includes('background-color') ||
+                     style.includes('background:') ||
+                     $el.attr('role') === 'button';
+
+    if (isButton && text.length > 0) {
+      const elementId = `element-${sectionId}-button-${elementCounter++}`;
+      $el.attr('data-element-id', elementId);
+      $el.attr('data-element-type', 'button');
+
+      elements.push({
+        id: elementId,
+        sectionId,
+        type: 'button',
+        tag: 'a',
+        label: `Button: ${text.substring(0, 30)}${text.length > 30 ? '...' : ''}`,
+        preview: text,
+      });
+    } else if (text.length > 0) {
+      // Regular link
+      const elementId = `element-${sectionId}-link-${elementCounter++}`;
+      $el.attr('data-element-id', elementId);
+      $el.attr('data-element-type', 'link');
+
+      elements.push({
+        id: elementId,
+        sectionId,
+        type: 'link',
+        tag: 'a',
+        label: `Link: ${text.substring(0, 30)}${text.length > 30 ? '...' : ''}`,
+        preview: text,
+      });
+    }
+  });
+
+  // Extract text blocks (p, span, div, td with substantial text content)
+  row.find('p, span, div, td').each((_, el) => {
+    const $el = $(el);
+    const text = $el.text().trim();
+
+    // Only include text blocks with meaningful content (min 3 chars, no child interactive elements)
+    // Exclude if it contains other structured elements (except simple formatting like strong, em)
+    const hasStructuredChildren = $el.find('a, img, h1, h2, h3, h4, h5, h6, p, div, table').length > 0;
+
+    if (text.length >= 3 && !hasStructuredChildren) {
+      const elementId = `element-${sectionId}-text-${elementCounter++}`;
+      $el.attr('data-element-id', elementId);
+      $el.attr('data-element-type', 'text');
+
+      elements.push({
+        id: elementId,
+        sectionId,
+        type: 'text',
+        tag: el.name,
+        label: `Text: ${text.substring(0, 40)}${text.length > 40 ? '...' : ''}`,
+        preview: text,
+      });
+    }
+  });
+
+  return elements;
 }
 
 function generateSectionLabel(

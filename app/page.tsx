@@ -5,7 +5,7 @@ import { NavigationSidebar } from '@/components/navigation/navigation-sidebar';
 import { ChatPanel } from '@/components/chat/chat-panel-with-assistant-ui';
 import { PropertyPanel } from '@/components/properties/property-panel';
 import { DesignEmptyState } from '@/components/design/design-empty-state';
-import { EmailPreview, EmailSection } from '@/components/preview/email-preview';
+import { EmailPreview, EmailSection, EmailElement } from '@/components/preview/email-preview';
 import { SAMPLE_EMAIL } from '@/lib/sample-email';
 import { Button } from '@/components/ui/button';
 import { Undo2, Redo2 } from 'lucide-react';
@@ -13,6 +13,7 @@ import { Undo2, Redo2 } from 'lucide-react';
 export default function Home() {
   const [currentHtml, setCurrentHtml] = useState(SAMPLE_EMAIL);
   const [selectedSection, setSelectedSection] = useState<EmailSection | null>(null);
+  const [selectedElement, setSelectedElement] = useState<EmailElement | null>(null);
   const [mode, setMode] = useState<'chat' | 'design'>('chat');
   const [showBlur, setShowBlur] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -69,11 +70,19 @@ export default function Home() {
 
   const handleSectionSelect = (section: EmailSection | null) => {
     setSelectedSection(section);
+    setSelectedElement(null); // Clear element selection when section is selected
+    // Don't automatically switch modes - let the user control that via navigation
+  };
+
+  const handleElementSelect = (element: EmailElement | null) => {
+    setSelectedElement(element);
+    setSelectedSection(null); // Clear section selection when element is selected
     // Don't automatically switch modes - let the user control that via navigation
   };
 
   const handleSectionDeselect = () => {
     setSelectedSection(null);
+    setSelectedElement(null);
     // Stay in design mode but show empty state
   };
 
@@ -171,10 +180,12 @@ export default function Home() {
 
           {/* Left panel - Chat or Design */}
           <div className="w-[420px] flex-shrink-0">
-            {mode === 'chat' ? (
+            {/* Chat panel - always mounted to preserve messages */}
+            <div className={mode === 'chat' ? 'block h-full' : 'hidden'}>
               <ChatPanel
                 currentHtml={currentHtml}
                 selectedSection={selectedSection}
+                selectedElement={selectedElement}
                 onHtmlUpdate={handleHtmlUpdate}
                 onSectionDeselect={handleSectionDeselect}
                 suggestions={suggestions}
@@ -187,15 +198,21 @@ export default function Home() {
                   fetchSuggestions();
                 }}
               />
-            ) : selectedSection ? (
-              <PropertyPanel
-                selectedSection={selectedSection}
-                currentHtml={currentHtml}
-                onHtmlUpdate={handleHtmlUpdate}
-                onClose={handleSectionDeselect}
-              />
-            ) : (
-              <DesignEmptyState />
+            </div>
+
+            {/* Design mode panels */}
+            {mode === 'design' && (
+              selectedSection || selectedElement ? (
+                <PropertyPanel
+                  selectedSection={selectedSection}
+                  selectedElement={selectedElement}
+                  currentHtml={currentHtml}
+                  onHtmlUpdate={handleHtmlUpdate}
+                  onClose={handleSectionDeselect}
+                />
+              ) : (
+                <DesignEmptyState />
+              )
             )}
           </div>
 
@@ -204,7 +221,9 @@ export default function Home() {
             <EmailPreview
               html={currentHtml}
               selectedSectionId={selectedSection?.id}
+              selectedElementId={selectedElement?.id}
               onSectionSelect={handleSectionSelect}
+              onElementSelect={handleElementSelect}
               onAnnotatedHtmlReady={handleAnnotatedHtmlReady}
               isLoading={showBlur}
             />

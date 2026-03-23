@@ -9,16 +9,38 @@ export interface EmailSection {
   index: number;
 }
 
+export type ElementType = 'heading' | 'button' | 'image' | 'text' | 'link';
+
+export interface EmailElement {
+  id: string;
+  sectionId: string;
+  type: ElementType;
+  tag: string;
+  label: string;
+  preview: string;
+}
+
 interface EmailPreviewProps {
   html: string;
   selectedSectionId?: string | null;
+  selectedElementId?: string | null;
   onSectionSelect?: (section: EmailSection | null) => void;
+  onElementSelect?: (element: EmailElement | null) => void;
   onAnnotatedHtmlReady?: (annotatedHtml: string) => void;
   isLoading?: boolean;
 }
 
-export function EmailPreview({ html, selectedSectionId, onSectionSelect, onAnnotatedHtmlReady, isLoading }: EmailPreviewProps) {
+export function EmailPreview({
+  html,
+  selectedSectionId,
+  selectedElementId,
+  onSectionSelect,
+  onElementSelect,
+  onAnnotatedHtmlReady,
+  isLoading
+}: EmailPreviewProps) {
   const [sections, setSections] = useState<EmailSection[]>([]);
+  const [elements, setElements] = useState<EmailElement[]>([]);
   const [enhancedHtml, setEnhancedHtml] = useState(html);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -42,15 +64,18 @@ export function EmailPreview({ html, selectedSectionId, onSectionSelect, onAnnot
         const data = await response.json();
         console.log('Parse sections response:', {
           sectionsCount: data.sections?.length,
+          elementsCount: data.elements?.length,
           hasAnnotatedHtml: !!data.annotatedHtml
         });
         setSections(data.sections || []);
+        setElements(data.elements || []);
 
-        // Use the annotated HTML from the API (with data-section-id attributes)
-        const htmlWithSectionIds = data.annotatedHtml || html;
+        // Use the annotated HTML from the API (with data-section-id and data-element-id attributes)
+        const htmlWithIds = data.annotatedHtml || html;
 
-        // Debug: check if data-section-id exists in HTML
-        console.log('Has data-section-id in HTML:', htmlWithSectionIds.includes('data-section-id'));
+        // Debug: check if data attributes exist in HTML
+        console.log('Has data-section-id in HTML:', htmlWithIds.includes('data-section-id'));
+        console.log('Has data-element-id in HTML:', htmlWithIds.includes('data-element-id'));
 
         // Notify parent about annotated HTML so it can be used for merging
         // Only notify if the HTML actually changed to avoid loops
@@ -59,7 +84,7 @@ export function EmailPreview({ html, selectedSectionId, onSectionSelect, onAnnot
         }
 
         // Inject the interaction script into the HTML
-        const scriptInjectedHtml = injectInteractionScript(htmlWithSectionIds, data.sections || []);
+        const scriptInjectedHtml = injectInteractionScript(htmlWithIds, data.sections || [], data.elements || []);
         setEnhancedHtml(scriptInjectedHtml);
       } catch (error) {
         console.error('Error parsing sections:', error);
@@ -81,25 +106,32 @@ export function EmailPreview({ html, selectedSectionId, onSectionSelect, onAnnot
         if (section && onSectionSelect) {
           onSectionSelect(section);
         }
+      } else if (event.data?.type === 'element-click') {
+        const elementId = event.data.elementId;
+        const element = elements.find(e => e.id === elementId);
+        if (element && onElementSelect) {
+          onElementSelect(element);
+        }
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [sections, onSectionSelect]);
+  }, [sections, elements, onSectionSelect, onElementSelect]);
 
-  // Update highlight when selectedSectionId changes
+  // Update highlight when selectedSectionId or selectedElementId changes
   useEffect(() => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         {
           type: 'update-selection',
           selectedSectionId,
+          selectedElementId,
         },
         '*'
       );
     }
-  }, [selectedSectionId]);
+  }, [selectedSectionId, selectedElementId]);
 
   return (
     <div className="min-h-full w-full bg-zinc-100 flex items-start justify-center py-16">
@@ -132,7 +164,7 @@ export function EmailPreview({ html, selectedSectionId, onSectionSelect, onAnnot
   );
 }
 
-function injectInteractionScript(html: string, sections: EmailSection[]): string {
+function injectInteractionScript(html: string, sections: EmailSection[], elements: EmailElement[]): string {
   const script = `
     <style>
       /* Remove all scrollbars from iframe - parent page handles scrolling */
@@ -155,6 +187,8 @@ function injectInteractionScript(html: string, sections: EmailSection[]): string
       (function() {
         let hoveredSectionId = null;
         let selectedSectionId = null;
+        let hoveredElementId = null;
+        let selectedElementId = null;
 
         // Wait for DOM to be ready
         if (document.readyState === 'loading') {
@@ -169,7 +203,9 @@ function injectInteractionScript(html: string, sections: EmailSection[]): string
           document.body.style.overflow = 'hidden';
 
           const sectionIds = ${JSON.stringify(sections.map(s => s.id))};
+          const elementIds = ${JSON.stringify(elements.map(e => e.id))};
           console.log('Iframe script initialized. Section IDs:', sectionIds);
+          console.log('Iframe script initialized. Element IDs:', elementIds);
 
           sectionIds.forEach(sectionId => {
             const element = document.querySelector('[data-section-id="' + sectionId + '"]');
@@ -180,7 +216,7 @@ function injectInteractionScript(html: string, sections: EmailSection[]): string
             element.addEventListener('mouseenter', () => {
               if (selectedSectionId !== sectionId) {
                 hoveredSectionId = sectionId;
-                element.style.outline = '2px solid #818cf8';
+                element.style.outline = '2px dashed #818cf8';
                 element.style.outlineOffset = '-2px';
                 element.style.cursor = 'pointer';
               }
@@ -205,7 +241,6 @@ function injectInteractionScript(html: string, sections: EmailSection[]): string
                 selectedSectionId = null;
                 element.style.outline = '';
                 element.style.outlineOffset = '';
-                element.style.backgroundColor = '';
                 window.parent.postMessage({ type: 'section-click', sectionId: null }, '*');
               } else {
                 // Clear previous selection
@@ -214,16 +249,81 @@ function injectInteractionScript(html: string, sections: EmailSection[]): string
                   if (prevElement) {
                     prevElement.style.outline = '';
                     prevElement.style.outlineOffset = '';
-                    prevElement.style.backgroundColor = '';
                   }
                 }
 
                 selectedSectionId = sectionId;
-                element.style.outline = '3px solid #4f46e5';
+                element.style.outline = '3px solid #818cf8';
                 element.style.outlineOffset = '-3px';
-                element.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
 
                 window.parent.postMessage({ type: 'section-click', sectionId }, '*');
+              }
+            });
+          });
+
+          // Handle element interactions (higher priority than sections)
+          elementIds.forEach(elementId => {
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            console.log('Found element for', elementId, ':', !!element);
+            if (!element) return;
+
+            // Add hover styles for elements
+            element.addEventListener('mouseenter', () => {
+              if (selectedElementId !== elementId) {
+                hoveredElementId = elementId;
+                element.style.outline = '2px dashed #818cf8';
+                // Use negative offset for images to ensure visibility
+                element.style.outlineOffset = element.tagName === 'IMG' ? '-2px' : '2px';
+                element.style.cursor = 'pointer';
+              }
+            });
+
+            element.addEventListener('mouseleave', () => {
+              if (selectedElementId !== elementId) {
+                hoveredElementId = null;
+                element.style.outline = '';
+                element.style.outlineOffset = '';
+                element.style.cursor = '';
+              }
+            });
+
+            // Handle element click (prevent section click from triggering)
+            element.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation(); // Prevent section click from firing
+
+              // Toggle element selection
+              if (selectedElementId === elementId) {
+                selectedElementId = null;
+                element.style.outline = '';
+                element.style.outlineOffset = '';
+                window.parent.postMessage({ type: 'element-click', elementId: null }, '*');
+              } else {
+                // Clear previous element selection
+                if (selectedElementId) {
+                  const prevElement = document.querySelector('[data-element-id="' + selectedElementId + '"]');
+                  if (prevElement) {
+                    prevElement.style.outline = '';
+                    prevElement.style.outlineOffset = '';
+                  }
+                }
+
+                // Clear section selection if any
+                if (selectedSectionId) {
+                  const prevSection = document.querySelector('[data-section-id="' + selectedSectionId + '"]');
+                  if (prevSection) {
+                    prevSection.style.outline = '';
+                    prevSection.style.outlineOffset = '';
+                  }
+                  selectedSectionId = null;
+                }
+
+                selectedElementId = elementId;
+                element.style.outline = '3px solid #818cf8';
+                // Use negative offset for images to ensure visibility
+                element.style.outlineOffset = element.tagName === 'IMG' ? '-3px' : '2px';
+
+                window.parent.postMessage({ type: 'element-click', elementId }, '*');
               }
             });
           });
@@ -231,26 +331,45 @@ function injectInteractionScript(html: string, sections: EmailSection[]): string
           // Listen for selection updates from parent
           window.addEventListener('message', (event) => {
             if (event.data?.type === 'update-selection') {
-              const newSelectedId = event.data.selectedSectionId;
+              const newSelectedSectionId = event.data.selectedSectionId;
+              const newSelectedElementId = event.data.selectedElementId;
 
-              // Clear old selection
-              if (selectedSectionId && selectedSectionId !== newSelectedId) {
+              // Clear old section selection
+              if (selectedSectionId && selectedSectionId !== newSelectedSectionId) {
                 const oldElement = document.querySelector('[data-section-id="' + selectedSectionId + '"]');
                 if (oldElement) {
                   oldElement.style.outline = '';
                   oldElement.style.outlineOffset = '';
-                  oldElement.style.backgroundColor = '';
                 }
               }
 
-              // Apply new selection
-              selectedSectionId = newSelectedId;
-              if (newSelectedId) {
-                const newElement = document.querySelector('[data-section-id="' + newSelectedId + '"]');
+              // Clear old element selection
+              if (selectedElementId && selectedElementId !== newSelectedElementId) {
+                const oldElement = document.querySelector('[data-element-id="' + selectedElementId + '"]');
+                if (oldElement) {
+                  oldElement.style.outline = '';
+                  oldElement.style.outlineOffset = '';
+                }
+              }
+
+              // Apply new section selection
+              selectedSectionId = newSelectedSectionId;
+              if (newSelectedSectionId) {
+                const newElement = document.querySelector('[data-section-id="' + newSelectedSectionId + '"]');
                 if (newElement) {
-                  newElement.style.outline = '3px solid #4f46e5';
+                  newElement.style.outline = '3px solid #818cf8';
                   newElement.style.outlineOffset = '-3px';
-                  newElement.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
+                }
+              }
+
+              // Apply new element selection
+              selectedElementId = newSelectedElementId;
+              if (newSelectedElementId) {
+                const newElement = document.querySelector('[data-element-id="' + newSelectedElementId + '"]');
+                if (newElement) {
+                  newElement.style.outline = '3px solid #818cf8';
+                  // Use negative offset for images to ensure visibility
+                  newElement.style.outlineOffset = newElement.tagName === 'IMG' ? '-3px' : '2px';
                 }
               }
             }
