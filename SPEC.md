@@ -378,43 +378,40 @@ Use inline styles only. Keep it ~200 lines of clean email HTML. Use placeholder 
 **Goal:** Transform the prototype into a usable tool for e-commerce users who need to customize marketing emails quickly.
 
 **1. Granular sub-element selection**
-- Extend the section parser to identify clickable sub-elements within sections:
+- ✅ Extend the section parser to identify clickable sub-elements within sections:
   - Headings (`<h1>`, `<h2>`, `<h3>`)
   - Buttons/CTAs (`<a>` with button styles, `<button>`)
   - Images (`<img>`)
   - Text blocks (`<p>`, `<span>`, `<td>` with text content)
-- Click on sub-element → chip shows specific element type (e.g., "H1: Welcome to our sale")
-- AI instructions scope to the selected sub-element only
-- Property panel adapts to show element-specific properties
+- ✅ Click on sub-element → chip shows specific element type (e.g., "H1: Welcome to our sale")
+- ❌ AI instructions scope to the selected sub-element only
+- ⏸️ Property panel adapts to show element-specific properties
 
 **2. Image property panel**
-- When an image is selected, Property Panel shows:
-  - **Image source options:**
-    - Upload image (file picker + drag & drop)
-    - Enter URL (text input)
-    - Browse Unsplash (integrated stock photo search)
-  - **Alt text** (accessibility + fallback text)
-  - **Link URL** (optional - make image clickable)
-  - **Width/Height** (dimension controls)
-  - **Alignment** (left, center, right within email layout)
-- Changes update the HTML surgically (target the specific `<img>` tag)
+- ✅ When an image is selected, Property Panel shows:
+  - ✅ **Image source options:**
+    - ✅ Upload image (file picker + drag & drop)
+    - ✅ Enter URL (text input)
+    - ⏸️ Browse Unsplash (integrated stock photo search)
+  - ✅ **Alt text** (accessibility + fallback text)
+  - ✅ **Width/Height** (dimension controls)
+  - ✅ **Alignment** (left, center, right within email layout)
+- ✅ Changes update the HTML surgically (target the specific `<img>` tag)
 - Upload handling: consider CDN solutions (uploadthing, cloudinary, or Vercel Blob)
-- Unsplash integration: use Unsplash API for stock photo search & selection
+- ⏸️ Unsplash integration: use Unsplash API for stock photo search & selection
 
 **3. Conversational UX improvements**
-- **Larger textarea**
-  - Increase default height from 1 line to 3-4 lines
-  - Auto-expand as user types (up to max-height)
-  - Better for longer, detailed prompts (e.g., "Add a product section with 3 items: Item 1...")
-- **Inline suggestion context**
-  - Show suggestions inline with the conversation flow (not just after generation)
-  - Example: After selecting an image, suggest "Change this image" or "Add alt text"
-  - Context-aware: different suggestions based on what's selected
-- **Generation context notes**
-  - Display a small note/badge showing what was generated/edited
-  - Example: "✓ Updated Hero heading" instead of hiding all HTML
-  - Preserve context for undo/redo understanding
-  - Optional: Show before/after preview thumbnails in chat history
+- ✅ **Larger textarea**
+  -✅ Increase default height from 1 line to 3-4 lines
+  -✅ Auto-expand as user types (up to max-height)
+- ✅ **Inline suggestion context**
+  -✅ Show suggestions inline with the conversation flow (not just after generation)
+  -✅ Example: After selecting an image, suggest "Change this image" or "Add alt text"
+  -✅ Context-aware: different suggestions based on what's selected
+- ✅ **Generation context notes**
+  -✅ Display a small note/badge showing what was generated/edited
+  -✅ Example: "✓ Updated Hero heading" instead of hiding all HTML
+  -✅  Preserve context for undo/redo understanding
 
 **4. Personalization variables (merge tags)**
 - Add a variable picker UI — a button near the textarea that opens a list of available variables
@@ -502,6 +499,12 @@ Discuss with team whether to invest in solution 1-4 or keep the current limitati
 ### Low Priority (Nice to have)
 - **Streaming preview**: Currently updates on completion, not as tokens arrive (Slice 5)
 - **Change highlighting**: No visual indication of what changed (Slice 5)
+
+### Slice 8 — Model Migration
+
+- Switch the LLM from GPT-4o to **Claude Sonnet 4.5** (`claude-sonnet-4-5-20251001` via `@ai-sdk/anthropic`)
+- Update the `/api/chat` and `/api/suggestions` routes accordingly
+- Verify streaming behavior and response format remain compatible with Vercel AI SDK
 
 ## Open Decisions (resolve as we go)
 
