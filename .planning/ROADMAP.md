@@ -15,7 +15,7 @@
 - Store API key server-side via env vars
 
 Plans:
-- [ ] 01-01-PLAN.md — Dify client library, types, and env configuration
+- [x] 01-01-PLAN.md — Dify client library, types, and env configuration
 - [ ] 01-02-PLAN.md — API route SSE proxy and end-to-end verification
 
 **Verification:** Send messages through API route, receive streaming responses from Dify agent with conversation continuity.
