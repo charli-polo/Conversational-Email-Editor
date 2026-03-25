@@ -59,9 +59,11 @@ Exceptions: none
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 (regular) | 1.5 |
-| Label | 12px | 500 (medium) | 1.4 |
+| Label | 12px | 400 (regular) | 1.4 |
 | Heading | 20px | 600 (semibold) | 1.2 |
 | Display | 28px | 600 (semibold) | 1.2 |
+
+Two weights only: 400 (regular) for body text and labels, 600 (semibold) for headings and display. Labels are differentiated from body by their smaller 12px size, not by weight.
 
 **Phase 1 note:** No typography decisions needed. These values are recorded from the existing project (system font stack, shadcn defaults) for Phase 2+ consumption.
 
