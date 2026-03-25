@@ -24,11 +24,16 @@ Plans:
 
 **Goal:** Build the brief-taking page with chat and empty right panel
 **Requirements:** BRIEF-01, BRIEF-02, BRIEF-03, BRIEF-04
+**Plans:** 2 plans
 
 - Create brief page with two-panel layout (reuse existing layout pattern)
 - Build chat component connected to `/api/brief/chat`
 - Add empty state / placeholder in right panel
 - Add "Start editing" transition button
+
+Plans:
+- [ ] 02-01-PLAN.md — Dify parameters proxy route and useBriefChat hook
+- [ ] 02-02-PLAN.md — Brief page UI components and two-panel layout
 
 **Verification:** User can chat with Dify agent on brief page, see empty right panel, and see the transition button.
 
