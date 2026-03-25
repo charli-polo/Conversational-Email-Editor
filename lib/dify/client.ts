@@ -30,3 +30,13 @@ export async function sendChatMessage(params: DifyChatRequest): Promise<Response
 
   return response;
 }
+
+export async function getParameters(user: string = 'default-user'): Promise<Response> {
+  if (!DIFY_API_KEY) {
+    throw new Error('DIFY_API_KEY is not configured');
+  }
+
+  return fetch(`${DIFY_API_BASE}/v1/parameters?user=${encodeURIComponent(user)}`, {
+    headers: { 'Authorization': `Bearer ${DIFY_API_KEY}` },
+  });
+}

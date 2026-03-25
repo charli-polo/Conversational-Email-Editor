@@ -42,3 +42,18 @@ export interface DifyErrorEvent {
 
 // Union type for all possible SSE events
 export type DifySSEEvent = DifyMessageEvent | DifyMessageEndEvent | DifyErrorEvent;
+
+// Response type for GET /parameters
+export interface DifyParametersResponse {
+  opening_statement: string;
+  suggested_questions: string[];
+  suggested_questions_after_answer: { enabled: boolean };
+  speech_to_text: { enabled: boolean };
+  retriever_resource: { enabled: boolean };
+  annotation_reply: { enabled: boolean };
+  more_like_this: { enabled: boolean };
+  user_input_form: unknown[];
+  sensitive_word_avoidance: { enabled: boolean; type: string; configs: unknown[] };
+  file_upload: { image: { enabled: boolean; number_limits: number; transfer_methods: string[] } };
+  system_parameters: { image_file_size_limit: string };
+}
