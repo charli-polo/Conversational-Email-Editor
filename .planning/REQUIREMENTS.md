@@ -7,9 +7,9 @@
 
 ### Dify Agent Integration
 
-- [ ] **DIFY-01**: Next.js API route proxies chat messages to Dify `/chat-messages` endpoint
-- [ ] **DIFY-02**: Conversation state maintained via Dify `conversation_id` across messages
-- [ ] **DIFY-03**: Streaming responses from Dify displayed in chat panel
+- [x] **DIFY-01**: Next.js API route proxies chat messages to Dify `/chat-messages` endpoint
+- [x] **DIFY-02**: Conversation state maintained via Dify `conversation_id` across messages
+- [x] **DIFY-03**: Streaming responses from Dify displayed in chat panel
 - [x] **DIFY-04**: Dify API key stored server-side only, never exposed to client
 
 ### Brief Page UI
@@ -51,9 +51,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DIFY-01 | Phase 1 | Pending |
-| DIFY-02 | Phase 1 | Pending |
-| DIFY-03 | Phase 1 | Pending |
+| DIFY-01 | Phase 1 | Complete |
+| DIFY-02 | Phase 1 | Complete |
+| DIFY-03 | Phase 1 | Complete |
 | DIFY-04 | Phase 1 | Complete |
 | BRIEF-01 | Phase 2 | Pending |
 | BRIEF-02 | Phase 2 | Pending |
