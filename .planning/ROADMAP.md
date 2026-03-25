@@ -32,7 +32,7 @@ Plans:
 - Add "Start editing" transition button
 
 Plans:
-- [ ] 02-01-PLAN.md — Dify parameters proxy route and useBriefChat hook
+- [x] 02-01-PLAN.md — Dify parameters proxy route and useBriefChat hook
 - [ ] 02-02-PLAN.md — Brief page UI components and two-panel layout
 
 **Verification:** User can chat with Dify agent on brief page, see empty right panel, and see the transition button.

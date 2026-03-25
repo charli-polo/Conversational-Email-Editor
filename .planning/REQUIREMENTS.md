@@ -15,7 +15,7 @@
 ### Brief Page UI
 
 - [ ] **BRIEF-01**: New page with two-panel layout (chat left, empty panel right)
-- [ ] **BRIEF-02**: Chat panel supports multi-turn conversation with Dify agent
+- [x] **BRIEF-02**: Chat panel supports multi-turn conversation with Dify agent
 - [ ] **BRIEF-03**: Right panel shows empty/placeholder state during brief phase
 - [ ] **BRIEF-04**: "Start editing" button visible to transition to email editor
 
@@ -56,7 +56,7 @@
 | DIFY-03 | Phase 1 | Complete |
 | DIFY-04 | Phase 1 | Complete |
 | BRIEF-01 | Phase 2 | Pending |
-| BRIEF-02 | Phase 2 | Pending |
+| BRIEF-02 | Phase 2 | Complete |
 | BRIEF-03 | Phase 2 | Pending |
 | BRIEF-04 | Phase 2 | Pending |
 | FLOW-01 | Phase 3 | Pending |
