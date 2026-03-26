@@ -15,6 +15,7 @@ export default function BriefPage() {
     sendMessage,
     isLoading,
     isBriefComplete,
+    briefContent,
   } = useBriefChat();
 
   const handleStartEditing = () => {
@@ -46,6 +47,7 @@ export default function BriefPage() {
         <div className="flex-1 overflow-y-auto">
           <BriefEmptyState
             isBriefComplete={isBriefComplete}
+            briefContent={briefContent}
             onStartEditing={handleStartEditing}
           />
         </div>

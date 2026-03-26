@@ -1,6 +1,8 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { BriefMessage } from '@/hooks/use-brief-chat';
@@ -78,8 +80,8 @@ export function BriefChatPanel({
               </div>
             ) : (
               <div className="flex justify-start">
-                <div className="w-full text-sm text-foreground whitespace-pre-wrap">
-                  {msg.content}
+                <div className="w-full text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                 </div>
               </div>
             )}
