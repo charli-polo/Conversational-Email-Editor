@@ -1,4 +1,9 @@
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const openai = createOpenAI({
+  baseURL: process.env.OPENAI_BASE_URL ? `${process.env.OPENAI_BASE_URL.replace(/\/$/, '')}/v1` : undefined,
+  apiKey: process.env.OPENAI_API_KEY,
+});
 import { generateText } from "ai";
 
 export const runtime = "edge";
@@ -37,7 +42,7 @@ export async function POST(req: Request) {
     }
 
     const result = await generateText({
-      model: openai("gpt-4o-mini"), // Use mini for faster/cheaper suggestions
+      model: openai("openai/gpt-5.1-chat-latest"),
       system: SUGGESTIONS_SYSTEM_PROMPT,
       prompt: `Current email HTML:\n\`\`\`html\n${html}\n\`\`\`\n\nGenerate 3 suggestions for what to do next.`,
     });

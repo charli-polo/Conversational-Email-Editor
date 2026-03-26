@@ -1,4 +1,9 @@
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const openai = createOpenAI({
+  baseURL: process.env.OPENAI_BASE_URL ? `${process.env.OPENAI_BASE_URL.replace(/\/$/, '')}/v1` : undefined,
+  apiKey: process.env.OPENAI_API_KEY,
+});
 import { streamText } from "ai";
 import { EMAIL_EDITOR_SYSTEM_PROMPT } from "@/lib/prompts/email-editor";
 
@@ -50,7 +55,7 @@ Sorry for the limitation! 🙏`;
 
       // Return as a stream (like AI responses) so useChat can handle it
       const result = streamText({
-        model: openai("gpt-4o-mini"),
+        model: openai("openai/gpt-5.1-chat-latest"),
         messages: [{ role: "assistant", content: errorMessage }],
         maxTokens: 1, // Don't actually generate anything
       });
@@ -166,7 +171,7 @@ Your response must be EXACTLY ONE <tr> element. Count your <tr> tags before resp
 
     try {
       // Use gpt-4o for everything (gpt-4o-mini was causing issues)
-      const modelToUse = "gpt-4o";
+      const modelToUse = "openai/gpt-5.1-chat-latest";
 
       console.log('🤖 AI Model:', modelToUse, '| Element ID:', selectedElementId || 'none');
 
