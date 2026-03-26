@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { basePath } from '@/lib/base-path';
 
 export interface BriefMessage {
   id: string;
@@ -36,7 +37,7 @@ export function useBriefChat(): UseBriefChatReturn {
 
     async function fetchParameters() {
       try {
-        const res = await fetch('/api/brief/parameters');
+        const res = await fetch(`${basePath}/api/brief/parameters`);
         if (!res.ok) throw new Error('Failed to fetch parameters');
         const data = await res.json();
 
@@ -101,7 +102,7 @@ export function useBriefChat(): UseBriefChatReturn {
         let briefClosed = false;
 
         try {
-          const res = await fetch('/api/brief/chat', {
+          const res = await fetch(`${basePath}/api/brief/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
