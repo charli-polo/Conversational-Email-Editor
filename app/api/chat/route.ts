@@ -226,7 +226,7 @@ Your response must be EXACTLY ONE <tr> element. Count your <tr> tags before resp
                                    selectedElementType === 'button' ? 'button' :
                                    'element';
 
-          const enhancedContent = `Change the selected ${elementTypeLabel} to: ${lastMessage.content}`;
+          const enhancedContent = `Instruction for the selected ${elementTypeLabel} (id: ${selectedElementId}): ${lastMessage.content}`;
           console.log('💬 Enhanced prompt:', enhancedContent);
 
           enhancedMessages = [
