@@ -5,7 +5,6 @@ import { EMAIL_EDITOR_SYSTEM_PROMPT } from "@/lib/prompts/email-editor";
 const openai = createOpenAI({
   baseURL: process.env.OPENAI_BASE_URL ? `${process.env.OPENAI_BASE_URL.replace(/\/$/, '')}/v1` : undefined,
   apiKey: process.env.OPENAI_API_KEY,
-  compatibility: 'compatible',
 });
 
 export const runtime = "edge";
@@ -220,7 +219,7 @@ Your response must be EXACTLY ONE <tr> element. Count your <tr> tags before resp
       });
 
       const result = streamText({
-        model: openai(modelToUse),
+        model: openai.chat(modelToUse),
         system: systemPrompt,
         messages: [
           {
