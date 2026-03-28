@@ -1,0 +1,32 @@
+applications:
+  app:
+    type: "nodejs:22"
+
+    build:
+      flavor: none
+
+    hooks:
+      build: |
+        set -e
+        npm ci
+        npm run build
+
+    web:
+      commands:
+        start: "npx next start -p $PORT"
+      locations:
+        /:
+          passthru: true
+          allow: false
+          rules:
+            \.(ico|jpg|jpeg|png|gif|svg|webp|css|js|woff|woff2|ttf|eot)$:
+              allow: true
+              expires: 1y
+
+routes:
+  "https://{default}/":
+    type: upstream
+    upstream: "app:http"
+  "https://www.{default}/":
+    type: redirect
+    to: "https://{default}/"
