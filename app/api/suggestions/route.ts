@@ -1,5 +1,10 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
+
+const openai = createOpenAI({
+  baseURL: process.env.OPENAI_BASE_URL ? `${process.env.OPENAI_BASE_URL.replace(/\/$/, '')}/v1` : undefined,
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export const runtime = "edge";
 
@@ -27,11 +32,10 @@ Examples of good suggestions:
 
 export async function POST(req: Request) {
   try {
-    // Check if Anthropic API key is configured
-    if (!process.env.ANTHROPIC_API_KEY) {
-      console.error("ANTHROPIC_API_KEY is not set");
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("OPENAI_API_KEY is not set");
       return new Response(
-        JSON.stringify({ error: "Anthropic API key is not configured" }),
+        JSON.stringify({ error: "OpenAI API key is not configured" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -46,7 +50,7 @@ export async function POST(req: Request) {
     }
 
     const result = await generateText({
-      model: anthropic("claude-haiku-4-5-20251001"), // Use Haiku for faster/cheaper suggestions
+      model: openai(process.env.SUGGESTIONS_MODEL || "gpt-4o-mini"),
       system: SUGGESTIONS_SYSTEM_PROMPT,
       prompt: `Current email HTML:\n\`\`\`html\n${html}\n\`\`\`\n\nGenerate 3 suggestions for what to do next.`,
     });

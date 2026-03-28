@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { basePath } from '@/lib/base-path';
 
 export interface EmailSection {
   id: string;
@@ -53,7 +54,7 @@ export function EmailPreview({
 
     const parseSections = async () => {
       try {
-        const response = await fetch('/api/parse-sections', {
+        const response = await fetch(`${basePath}/api/parse-sections`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ html }),

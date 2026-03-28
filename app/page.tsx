@@ -9,6 +9,7 @@ import { SAMPLE_EMAIL } from '@/lib/sample-email';
 import { Button } from '@/components/ui/button';
 import { Undo2, Redo2 } from 'lucide-react';
 import Image from 'next/image';
+import { basePath } from '@/lib/base-path';
 
 export default function Home() {
   const [currentHtml, setCurrentHtml] = useState(SAMPLE_EMAIL);
@@ -217,7 +218,7 @@ export default function Home() {
 
   const fetchSuggestions = async () => {
     try {
-      const response = await fetch('/api/suggestions', {
+      const response = await fetch(`${basePath}/api/suggestions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ html: currentHtml }),

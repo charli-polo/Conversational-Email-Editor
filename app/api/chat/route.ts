@@ -1,16 +1,21 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import { EMAIL_EDITOR_SYSTEM_PROMPT } from "@/lib/prompts/email-editor";
+
+const openai = createOpenAI({
+  baseURL: process.env.OPENAI_BASE_URL ? `${process.env.OPENAI_BASE_URL.replace(/\/$/, '')}/v1` : undefined,
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export const runtime = "edge";
 
 export async function POST(req: Request) {
   try {
-    // Check if Anthropic API key is configured
-    if (!process.env.ANTHROPIC_API_KEY) {
-      console.error("ANTHROPIC_API_KEY is not set");
+    // Check if API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("OPENAI_API_KEY is not set");
       return new Response(
-        JSON.stringify({ error: "Anthropic API key is not configured" }),
+        JSON.stringify({ error: "OpenAI API key is not configured" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -160,8 +165,7 @@ Your response must be EXACTLY ONE <tr> element. Count your <tr> tags before resp
     }
 
     try {
-      // Use Claude 3.5 Sonnet for better precision in HTML editing
-      const modelToUse = "claude-sonnet-4-5-20250929";
+      const modelToUse = process.env.EDITOR_MODEL || "gpt-4o";
 
       console.log('🤖 AI Model:', modelToUse, '| Element ID:', selectedElementId || 'none');
 
@@ -215,7 +219,7 @@ Your response must be EXACTLY ONE <tr> element. Count your <tr> tags before resp
       });
 
       const result = streamText({
-        model: anthropic(modelToUse),
+        model: openai(modelToUse),
         system: systemPrompt,
         messages: [
           {

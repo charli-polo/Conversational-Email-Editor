@@ -3,6 +3,7 @@
 import { AssistantRuntimeProvider, useLocalRuntime, type ChatModelAdapter } from '@assistant-ui/react';
 import { useCallback, useMemo } from 'react';
 import { mergeSectionHtml } from '@/lib/merge-section';
+import { basePath } from '@/lib/base-path';
 
 interface AssistantProviderProps {
   children: React.ReactNode;
@@ -23,7 +24,7 @@ export function AssistantProvider({
   const adapter: ChatModelAdapter = useMemo(
     () => ({
       async *run({ messages, abortSignal }) {
-        const response = await fetch('/api/chat', {
+        const response = await fetch(`${basePath}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
