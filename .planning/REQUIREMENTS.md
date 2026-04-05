@@ -27,9 +27,9 @@
 
 ### Chat UI Upgrade
 
-- [ ] **CHAT-01**: Upgrade @assistant-ui/react to v0.12.x and replace custom brief chat panel (~676 LOC) with library primitives (Thread, Composer, MessagePrimitive)
-- [ ] **CHAT-02**: Test prompt chips rendered via ThreadPrimitive.Suggestion instead of custom implementation
-- [ ] **CHAT-03**: Brief chat wired through assistant-ui runtime with existing Dify ChatModelAdapter
+- [x] **CHAT-01**: Upgrade @assistant-ui/react to v0.12.x and replace custom brief chat panel (~676 LOC) with library primitives (Thread, Composer, MessagePrimitive)
+- [x] **CHAT-02**: Test prompt chips rendered via ThreadPrimitive.Suggestion instead of custom implementation
+- [x] **CHAT-03**: Brief chat wired through assistant-ui runtime with existing Dify ChatModelAdapter
 
 ### Settings Panel
 
@@ -84,9 +84,9 @@
 | FLOW-02 | Phase 3 | Complete |
 | FLOW-03 | Phase 3 | Complete |
 
-| CHAT-01 | Phase 4 | Pending |
-| CHAT-02 | Phase 4 | Pending |
-| CHAT-03 | Phase 4 | Pending |
+| CHAT-01 | Phase 4 | Complete |
+| CHAT-02 | Phase 4 | Complete |
+| CHAT-03 | Phase 4 | Complete |
 | SETTINGS-01 | Phase 4 | Pending |
 | SETTINGS-02 | Phase 4 | Pending |
 | SETTINGS-03 | Phase 4 | Pending |

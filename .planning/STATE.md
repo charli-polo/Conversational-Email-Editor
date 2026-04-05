@@ -8,8 +8,8 @@ progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 4
-  percent: 75
+  completed_plans: 5
+  percent: 50
 ---
 
 # Project State
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 | 1 | Dify Agent API Integration | Complete | 100% |
 | 2 | Brief Page UI | Complete | 100% |
 | 3 | Flow Navigation & Wiring | Complete | 100% |
-| 4 | Settings Panel & Conversation Persistence | In Progress | 1/6 plans |
+| 4 | Settings Panel & Conversation Persistence | In Progress | 2/6 plans |
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%
 
 ## Session Log
 
@@ -43,11 +43,14 @@ Progress: [████░░░░░░] 40%
 - 2026-04-05: Phase 4 added — Settings Panel, Chat Upgrade & Conversation Persistence (12 requirements, 6 plans)
 - 2026-04-05: Added CHAT-01/02/03 requirements for assistant-ui v0.12 upgrade (replacing custom chat with library primitives)
 - 2026-04-05: Completed 04-01-PLAN.md — SQLite database foundation with better-sqlite3, Drizzle ORM, 4-table schema (PERSIST-01, PERSIST-05 done)
+- 2026-04-05: Completed 04-02-PLAN.md — Upgraded assistant-ui to v0.12.x, replaced custom chat with library primitives, added SettingsSheet (CHAT-01, CHAT-02, CHAT-03 done)
 
 ## Decisions
 
 - **04-01:** Track drizzle migrations in git for Railway deployment (removed drizzle/ from .gitignore)
 - **04-01:** Use ISO text timestamps in SQLite for human readability
+- **04-02:** Used v0.12 single Message component with MessagePrimitive.If for role branching (adapted to new API)
+- **04-02:** Preserved old custom chat components unused for rollback safety
 
 ---
 *Last updated: 2026-04-05*
