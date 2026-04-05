@@ -13,7 +13,7 @@ interface AssistantProviderProps {
   onHtmlUpdate: (html: string) => void;
 }
 
-export function AssistantProvider({
+export function AuiProvider({
   children,
   html,
   selectedSectionId,
