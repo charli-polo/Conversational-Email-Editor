@@ -12,6 +12,7 @@ import { useAuiState } from '@assistant-ui/store';
 import { createContext, useContext, useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { basePath } from '@/lib/base-path';
+import { createDifyFeedbackAdapter, createDifyAttachmentAdapter, createDifyDictationAdapter } from '@/lib/dify/adapters';
 
 export interface ThreadMeta {
   preview: string | null;
@@ -22,6 +23,17 @@ export const ThreadMetadataContext = createContext<Record<string, ThreadMeta>>({
 export function useThreadMetadata() {
   return useContext(ThreadMetadataContext);
 }
+
+export interface DifyParams {
+  opening_statement: string;
+  suggested_questions: string[];
+  speech_to_text: { enabled: boolean };
+  file_upload: { image: { enabled: boolean; number_limits: number; transfer_methods: string[] } };
+  system_parameters: Record<string, unknown>;
+}
+
+export const DifyParamsContext = createContext<DifyParams | null>(null);
+export function useDifyParams() { return useContext(DifyParamsContext); }
 
 interface BriefRuntimeProviderProps {
   children: React.ReactNode;
@@ -34,6 +46,8 @@ interface DbMessage {
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  dify_message_id?: string | null;
+  rating?: 'like' | 'dislike' | null;
 }
 
 export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId }: BriefRuntimeProviderProps) {
@@ -44,6 +58,17 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
   const currentThreadIdRef = useRef<string>('');
   const justInitializedThreadRef = useRef<string | null>(null);
   const [threadMetadata, setThreadMetadata] = useState<Record<string, ThreadMeta>>({});
+  const [params, setParams] = useState<DifyParams | null>(null);
+
+  // Fetch Dify parameters once on mount (opener, file_upload, speech_to_text)
+  useEffect(() => {
+    fetch(`${basePath}/api/brief/parameters`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.error) setParams(data);
+      })
+      .catch(() => {});
+  }, []);
 
   const threadListAdapter: RemoteThreadListAdapter = useMemo(() => ({
     async list() {
@@ -165,9 +190,22 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
         }
         currentThreadIdRef.current = remoteId;
 
-        // Skip fetch if we just initialized this thread — messages are already in state from onNew
+        // Skip fetch if we just initialized this thread — inject opener for brand new thread
         if (justInitializedThreadRef.current === remoteId) {
           justInitializedThreadRef.current = null;
+          if (params?.opening_statement && messages.length === 0) {
+            setMessages([{
+              role: 'assistant' as const,
+              id: `opener-${remoteId}`,
+              content: [{ type: 'text' as const, text: params.opening_statement }],
+              metadata: {
+                custom: {
+                  isOpener: true,
+                  suggestedQuestions: params.suggested_questions || [],
+                },
+              },
+            }]);
+          }
           return;
         }
 
@@ -179,6 +217,18 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
                 data.messages.map((m: DbMessage) => ({
                   role: m.role as 'user' | 'assistant',
                   content: [{ type: 'text' as const, text: m.content }],
+                  ...(m.dify_message_id || m.rating ? {
+                    metadata: {
+                      ...(m.rating ? {
+                        submittedFeedback: {
+                          type: m.rating === 'like' ? 'positive' : 'negative',
+                        },
+                      } : {}),
+                      custom: {
+                        ...(m.dify_message_id ? { difyMessageId: m.dify_message_id } : {}),
+                      },
+                    },
+                  } : {}),
                 }))
               );
             } else {
@@ -188,9 +238,42 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
           .catch(() => setMessages([]));
       }, [remoteId]);
 
-      const onNew = useCallback(async (message: { content: { type: string; text?: string }[] }) => {
-        const text = message.content[0]?.type === 'text' ? (message.content[0] as { text: string }).text : '';
+      // Inject opener for empty threads that were not just initialized
+      useEffect(() => {
+        if (!remoteId || messages.length > 0 || !params?.opening_statement) return;
+        if (justInitializedThreadRef.current === remoteId) return;
+
+        setMessages([{
+          role: 'assistant' as const,
+          id: `opener-${remoteId}`,
+          content: [{ type: 'text' as const, text: params.opening_statement }],
+          metadata: {
+            custom: {
+              isOpener: true,
+              suggestedQuestions: params.suggested_questions || [],
+            },
+          },
+        }]);
+      }, [remoteId, params, messages.length]);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const onNew = useCallback(async (message: any) => {
+        const content = message.content;
+        const firstPart = Array.isArray(content) ? content[0] : undefined;
+        const text = firstPart && typeof firstPart === 'object' && 'type' in firstPart && firstPart.type === 'text' && 'text' in firstPart
+          ? (firstPart as { text: string }).text
+          : '';
         if (!text) return;
+
+        // Extract file references from attachments (from AttachmentAdapter)
+        const attachments = message.attachments as Array<{ metadata?: Record<string, unknown>; type?: string }> | undefined;
+        const files = attachments
+          ?.filter((a) => a.metadata?.difyUploadFileId)
+          .map((a) => ({
+            type: (a.type === 'image' ? 'image' : 'document') as 'image' | 'document',
+            transfer_method: 'local_file' as const,
+            upload_file_id: a.metadata!.difyUploadFileId as string,
+          })) || [];
 
         setMessages((prev) => [
           ...prev,
@@ -206,6 +289,7 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
               message: text,
               conversation_id: difyConversationIdRef.current,
               threadId: currentThreadIdRef.current,
+              ...(files.length > 0 ? { files } : {}),
             }),
           });
 
@@ -215,6 +299,9 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
           const decoder = new TextDecoder();
           let fullContent = '';
           let buffer = '';
+          const reasoningParts: Array<{ thought: string; tool: string }> = [];
+          let lastDifyMessageId = '';
+          let displayText = '';
 
           while (true) {
             const { done, value } = await reader.read();
@@ -229,10 +316,47 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
               try {
                 const data = JSON.parse(line.slice(6));
 
+                if (data.event === 'agent_thought') {
+                  if (data.thought) {
+                    reasoningParts.push({ thought: data.thought, tool: data.tool || '' });
+                  }
+                  if (data.message_id) lastDifyMessageId = data.message_id;
+                  // Update in-progress message with streaming reasoning metadata (D-14/D-16)
+                  setMessages((prev) => {
+                    const streamingContent = [
+                      ...reasoningParts.map(r => ({
+                        type: 'reasoning' as const,
+                        text: r.thought + (r.tool ? `\n[Tool: ${r.tool}]` : ''),
+                      })),
+                      { type: 'text' as const, text: displayText || '' },
+                    ];
+                    const streamingMetadata = {
+                      custom: {
+                        ...(lastDifyMessageId ? { difyMessageId: lastDifyMessageId } : {}),
+                        isStreamingReasoning: true,
+                        streamingTools: reasoningParts.filter(r => r.tool).map(r => r.tool),
+                      },
+                    };
+                    const lastMsg = prev[prev.length - 1];
+                    if (lastMsg?.role === 'assistant') {
+                      return [
+                        ...prev.slice(0, -1),
+                        { role: 'assistant' as const, content: streamingContent, metadata: streamingMetadata },
+                      ];
+                    }
+                    return [
+                      ...prev,
+                      { role: 'assistant' as const, content: streamingContent, metadata: streamingMetadata },
+                    ];
+                  });
+                  continue;
+                }
+
                 if (data.event === 'done') {
                   if (data.conversation_id) {
                     difyConversationIdRef.current = data.conversation_id;
                   }
+                  if (data.message_id) lastDifyMessageId = data.message_id;
                   continue;
                 }
                 if (data.event === 'error') continue;
@@ -240,7 +364,7 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
                 if (data.answer) {
                   fullContent += data.answer;
 
-                  let displayText = fullContent;
+                  displayText = fullContent;
                   const briefMatch = fullContent.match(/<Brief>([\s\S]*?)(<\/Brief>|$)/);
                   if (briefMatch) {
                     const beforeBrief = fullContent.substring(0, fullContent.indexOf('<Brief>')).trim();
@@ -253,17 +377,35 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
                     onBriefContentRef.current?.(briefInner.trim());
                   }
 
+                  // Build content with reasoning parts if any
+                  const contentParts = [
+                    ...reasoningParts.map(r => ({
+                      type: 'reasoning' as const,
+                      text: r.thought + (r.tool ? `\n[Tool: ${r.tool}]` : ''),
+                    })),
+                    { type: 'text' as const, text: displayText || '...' },
+                  ];
+                  const streamMeta = reasoningParts.length > 0 ? {
+                    metadata: {
+                      custom: {
+                        ...(lastDifyMessageId ? { difyMessageId: lastDifyMessageId } : {}),
+                        isStreamingReasoning: true,
+                        streamingTools: reasoningParts.filter(r => r.tool).map(r => r.tool),
+                      },
+                    },
+                  } : {};
+
                   setMessages((prev) => {
                     const lastMsg = prev[prev.length - 1];
                     if (lastMsg?.role === 'assistant') {
                       return [
                         ...prev.slice(0, -1),
-                        { role: 'assistant' as const, content: [{ type: 'text' as const, text: displayText || '...' }] },
+                        { role: 'assistant' as const, content: contentParts, ...streamMeta },
                       ];
                     }
                     return [
                       ...prev,
-                      { role: 'assistant' as const, content: [{ type: 'text' as const, text: displayText || '...' }] },
+                      { role: 'assistant' as const, content: contentParts, ...streamMeta },
                     ];
                   });
 
@@ -276,6 +418,36 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
               }
             }
           }
+
+          // Build final message content with reasoning parts but WITHOUT isStreamingReasoning
+          const finalContentParts = [
+            ...reasoningParts.map(r => ({
+              type: 'reasoning' as const,
+              text: r.thought + (r.tool ? `\n[Tool: ${r.tool}]` : ''),
+            })),
+            { type: 'text' as const, text: displayText || '...' },
+          ];
+          const finalMsgMetadata = {
+            custom: {
+              ...(lastDifyMessageId ? { difyMessageId: lastDifyMessageId } : {}),
+              // isStreamingReasoning deliberately ABSENT — streaming is complete.
+              // Plan 03 will show static ReasoningSection toggle instead of dots+timer.
+            },
+          };
+
+          setMessages((prev) => {
+            const lastMsg = prev[prev.length - 1];
+            if (lastMsg?.role === 'assistant') {
+              return [
+                ...prev.slice(0, -1),
+                { role: 'assistant' as const, content: finalContentParts, metadata: finalMsgMetadata },
+              ];
+            }
+            return [
+              ...prev,
+              { role: 'assistant' as const, content: finalContentParts, metadata: finalMsgMetadata },
+            ];
+          });
         } finally {
           setIsRunning(false);
         }
@@ -284,22 +456,44 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
       // eslint-disable-next-line react-hooks/rules-of-hooks
       return useExternalStoreRuntime({
         messages,
-        setMessages,
+        setMessages: (msgs: readonly ThreadMessageLike[]) => setMessages([...msgs]),
         isRunning,
         onNew,
+        onReload: async () => {
+          // Regenerate: remove last assistant message and re-send last user message
+          const lastUserIdx = [...messages].reverse().findIndex(m => m.role === 'user');
+          if (lastUserIdx === -1) return;
+          const actualIdx = messages.length - 1 - lastUserIdx;
+          const lastUserMsg = messages[actualIdx];
+          const content = lastUserMsg.content;
+          const firstPart = Array.isArray(content) ? content[0] : undefined;
+          const userText = firstPart && typeof firstPart === 'object' && 'type' in firstPart && firstPart.type === 'text' && 'text' in firstPart
+            ? (firstPart as { text: string }).text
+            : '';
+          if (!userText) return;
+          setMessages(prev => prev.slice(0, actualIdx + 1));
+          await onNew({ content: [{ type: 'text', text: userText }] });
+        },
         convertMessage: (m: ThreadMessageLike) => m,
+        adapters: {
+          feedback: createDifyFeedbackAdapter(() => currentThreadIdRef.current),
+          attachments: createDifyAttachmentAdapter(),
+          ...(params?.speech_to_text?.enabled ? { dictation: createDifyDictationAdapter() } : {}),
+        },
       });
     },
     adapter: threadListAdapter,
   });
 
   return (
-    <ThreadMetadataContext.Provider value={threadMetadata}>
-      <AssistantRuntimeProvider runtime={runtime}>
-        {initialThreadId && <InitialThreadSwitcher threadId={initialThreadId} />}
-        {children}
-      </AssistantRuntimeProvider>
-    </ThreadMetadataContext.Provider>
+    <DifyParamsContext.Provider value={params}>
+      <ThreadMetadataContext.Provider value={threadMetadata}>
+        <AssistantRuntimeProvider runtime={runtime}>
+          {initialThreadId && <InitialThreadSwitcher threadId={initialThreadId} />}
+          {children}
+        </AssistantRuntimeProvider>
+      </ThreadMetadataContext.Provider>
+    </DifyParamsContext.Provider>
   );
 }
 
