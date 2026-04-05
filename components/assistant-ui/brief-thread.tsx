@@ -221,17 +221,27 @@ function FileUploadButton({ accept }: { accept: string }) {
   }, [aui]);
 
   return (
-    <label className="inline-flex items-center justify-center flex-shrink-0 h-9 w-9 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
-      <Paperclip className="h-4 w-4" />
+    <>
       <input
         ref={inputRef}
+        id="file-upload-input"
         type="file"
         multiple
         accept={accept}
         onChange={handleChange}
-        className="hidden"
+        className="sr-only"
+        tabIndex={-1}
       />
-    </label>
+      <label
+        htmlFor="file-upload-input"
+        role="button"
+        tabIndex={0}
+        className="inline-flex items-center justify-center flex-shrink-0 h-9 w-9 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click(); }}
+      >
+        <Paperclip className="h-4 w-4" />
+      </label>
+    </>
   );
 }
 
