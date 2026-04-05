@@ -5,11 +5,11 @@ import {
   ComposerPrimitive,
   MessagePrimitive,
 } from '@assistant-ui/react';
-import { useAuiState } from '@assistant-ui/store';
+import { useAuiState, useAui } from '@assistant-ui/store';
 import { ArrowUp, Paperclip, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { basePath } from '@/lib/base-path';
 import Markdown from 'react-markdown';
 import { AssistantActionToolbar, UserActionToolbar } from './action-toolbar';
@@ -201,6 +201,40 @@ function DynamicSuggestions() {
   );
 }
 
+/**
+ * FileUploadButton -- Native label+input pattern for reliable file dialog.
+ * ComposerPrimitive.AddAttachment uses programmatic input.click() which
+ * some browsers block. This uses a <label> wrapping a hidden <input> instead.
+ */
+function FileUploadButton({ accept }: { accept: string }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const aui = useAui();
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    for (const file of files) {
+      aui.composer().addAttachment(file);
+    }
+    // Reset so the same file can be selected again
+    if (inputRef.current) inputRef.current.value = '';
+  }, [aui]);
+
+  return (
+    <label className="inline-flex items-center justify-center flex-shrink-0 h-9 w-9 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
+      <Paperclip className="h-4 w-4" />
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept={accept}
+        onChange={handleChange}
+        className="hidden"
+      />
+    </label>
+  );
+}
+
 export function BriefThread() {
   const difyParams = useDifyParams();
   const fileUploadEnabled = difyParams?.file_upload?.enabled ?? difyParams?.file_upload?.image?.enabled ?? false;
@@ -249,11 +283,7 @@ export function BriefThread() {
               <div className="flex items-end gap-2 px-3 py-2">
                 {/* Paperclip button -- left of input (D-09) */}
                 {fileUploadEnabled && (
-                  <ComposerPrimitive.AddAttachment asChild>
-                    <Button size="icon" variant="ghost" className="flex-shrink-0 h-9 w-9 rounded-full">
-                      <Paperclip className="h-4 w-4" />
-                    </Button>
-                  </ComposerPrimitive.AddAttachment>
+                  <FileUploadButton accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx,.md" />
                 )}
 
                 <ComposerPrimitive.Input
