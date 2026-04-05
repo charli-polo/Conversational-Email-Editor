@@ -89,7 +89,7 @@ Plans:
 - [x] 04-01-PLAN.md — SQLite database setup (better-sqlite3 + Drizzle schema + migrations)
 - [x] 04-02-PLAN.md — assistant-ui upgrade + brief chat migration (v0.12, Thread/Composer primitives, Dify adapter)
 - [x] 04-03-PLAN.md — Settings API routes (agents CRUD, test-prompts CRUD, active agent selection)
-- [ ] 04-04-PLAN.md — Settings page UI (agent form, agent list, test prompt form, navigation)
+- [x] 04-04-PLAN.md — Settings page UI (agent form, agent list, test prompt form, navigation)
 - [x] 04-05-PLAN.md — Conversation persistence API (save/load conversations, messages, agent config tagging)
 - [ ] 04-06-PLAN.md — ThreadList sidebar + useRemoteThreadListRuntime + resume flow + Railway deployment
 

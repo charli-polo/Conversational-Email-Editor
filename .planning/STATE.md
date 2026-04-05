@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-05T19:09:00.585Z"
+last_updated: "2026-04-05T19:13:42.487Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
   percent: 50
 ---
 
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 | 1 | Dify Agent API Integration | Complete | 100% |
 | 2 | Brief Page UI | Complete | 100% |
 | 3 | Flow Navigation & Wiring | Complete | 100% |
-| 4 | Settings Panel & Conversation Persistence | In Progress | 2/6 plans |
+| 4 | Settings Panel & Conversation Persistence | In Progress | 4/6 plans |
 
-Progress: [█████░░░░░] 50%
+Progress: [████████░░] 80%
 
 ## Session Log
 
@@ -44,6 +44,8 @@ Progress: [█████░░░░░] 50%
 - 2026-04-05: Added CHAT-01/02/03 requirements for assistant-ui v0.12 upgrade (replacing custom chat with library primitives)
 - 2026-04-05: Completed 04-01-PLAN.md — SQLite database foundation with better-sqlite3, Drizzle ORM, 4-table schema (PERSIST-01, PERSIST-05 done)
 - 2026-04-05: Completed 04-02-PLAN.md — Upgraded assistant-ui to v0.12.x, replaced custom chat with library primitives, added SettingsSheet (CHAT-01, CHAT-02, CHAT-03 done)
+- 2026-04-05: Completed 04-03-PLAN.md — Agent and test prompt API routes with CRUD endpoints
+- 2026-04-05: Completed 04-04-PLAN.md — Settings page UI with agent/test prompt CRUD, D-09 agent switch confirmation (SETTINGS-01 done)
 
 ## Decisions
 
@@ -51,9 +53,12 @@ Progress: [█████░░░░░] 50%
 - **04-01:** Use ISO text timestamps in SQLite for human readability
 - **04-02:** Used v0.12 single Message component with MessagePrimitive.If for role branching (adapted to new API)
 - **04-02:** Preserved old custom chat components unused for rollback safety
+- **04-04:** Used refreshKey state pattern for list re-fetch after CRUD mutations
+- **04-04:** Agent switch confirmation archives active thread before activating new agent per D-09
+- **04-04:** Test prompt reordering via up/down arrows in dropdown actions menu
 
 ---
-*Last updated: 2026-04-05*
+*Last updated: 2026-04-05 — Completed 04-04-PLAN.md (Settings Page UI)*
 
 - [Phase 04]: Refactored Dify client to accept optional AgentConfig for backward compatibility with env vars
 - [Phase 04]: API key masking uses sk-...last4 format on all agent GET responses

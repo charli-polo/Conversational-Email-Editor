@@ -33,7 +33,7 @@
 
 ### Settings Panel
 
-- [ ] **SETTINGS-01**: Settings page accessible from main navigation with agent configuration form (label, API key, base URL, conversation mode)
+- [x] **SETTINGS-01**: Settings page accessible from main navigation with agent configuration form (label, API key, base URL, conversation mode)
 - [x] **SETTINGS-02**: CRUD operations for registered agents (create, list, edit, delete)
 - [x] **SETTINGS-03**: Test prompts management — create, list, edit, delete reusable prompts that appear as quick-start chips in chat
 - [x] **SETTINGS-04**: Active agent selection — choose which registered agent powers the brief chat
@@ -87,7 +87,7 @@
 | CHAT-01 | Phase 4 | Complete |
 | CHAT-02 | Phase 4 | Complete |
 | CHAT-03 | Phase 4 | Complete |
-| SETTINGS-01 | Phase 4 | Pending |
+| SETTINGS-01 | Phase 4 | Complete |
 | SETTINGS-02 | Phase 4 | Complete |
 | SETTINGS-03 | Phase 4 | Complete |
 | SETTINGS-04 | Phase 4 | Complete |
