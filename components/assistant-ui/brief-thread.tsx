@@ -5,11 +5,14 @@ import {
   ComposerPrimitive,
   MessagePrimitive,
 } from '@assistant-ui/react';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Paperclip, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { basePath } from '@/lib/base-path';
 import Markdown from 'react-markdown';
+import { ComposerAttachmentPreview } from './attachment-preview';
+import { DragDropOverlay } from './drag-drop-overlay';
+import { useDifyParams } from './brief-runtime-provider';
 
 function BriefMessage() {
   return (
@@ -87,6 +90,10 @@ function DynamicSuggestions() {
 }
 
 export function BriefThread() {
+  const difyParams = useDifyParams();
+  const fileUploadEnabled = difyParams?.file_upload?.image?.enabled ?? false;
+  const sttEnabled = difyParams?.speech_to_text?.enabled ?? false;
+
   return (
     <div className="flex flex-col h-full bg-background border-r border-border">
       {/* Header */}
@@ -94,39 +101,76 @@ export function BriefThread() {
         <h2 className="text-lg font-semibold text-foreground">Chat</h2>
       </div>
 
-      <ThreadPrimitive.Root className="flex-1 flex flex-col">
-        <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto p-4 space-y-4">
-          <ThreadPrimitive.Messages
-            components={{
-              Message: BriefMessage,
-            }}
-          />
-        </ThreadPrimitive.Viewport>
+      <DragDropOverlay>
+        <ThreadPrimitive.Root className="flex-1 flex flex-col">
+          <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto p-4 space-y-4">
+            <ThreadPrimitive.Messages
+              components={{
+                Message: BriefMessage,
+              }}
+            />
+          </ThreadPrimitive.Viewport>
 
-        {/* Suggestion chips shown only on empty thread */}
-        <ThreadPrimitive.Empty>
-          <DynamicSuggestions />
-        </ThreadPrimitive.Empty>
+          {/* Suggestion chips shown only on empty thread */}
+          <ThreadPrimitive.Empty>
+            <DynamicSuggestions />
+          </ThreadPrimitive.Empty>
 
-        <div className="p-4 border-t border-border">
-          <ComposerPrimitive.Root className="relative border border-border rounded-[24px] bg-background focus-within:ring-2 focus-within:ring-ring transition-shadow">
-            <div className="flex items-end gap-2 px-3 py-2">
-              <ComposerPrimitive.Input
-                placeholder="Tell me about the email you'd like to create..."
-                className="flex-1 border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 py-2 text-sm resize-none outline-none min-h-[24px] max-h-[72px] overflow-y-auto"
-              />
-              <ComposerPrimitive.Send asChild>
-                <Button
-                  size="icon"
-                  className="flex-shrink-0 h-9 w-9 rounded-full bg-muted hover:bg-muted/80 text-foreground disabled:opacity-50"
-                >
-                  <ArrowUp className="h-4 w-4" />
-                </Button>
-              </ComposerPrimitive.Send>
-            </div>
-          </ComposerPrimitive.Root>
-        </div>
-      </ThreadPrimitive.Root>
+          <div className="p-4 border-t border-border">
+            <ComposerPrimitive.Root className="relative border border-border rounded-[24px] bg-background focus-within:ring-2 focus-within:ring-ring transition-shadow">
+              {/* Attachment previews above the input row (D-11) */}
+              <div className="flex flex-wrap gap-1 px-3 pt-2 empty:hidden">
+                <ComposerPrimitive.Attachments
+                  components={{
+                    Attachment: ComposerAttachmentPreview,
+                  }}
+                />
+              </div>
+
+              <div className="flex items-end gap-2 px-3 py-2">
+                {/* Paperclip button -- left of input (D-09) */}
+                {fileUploadEnabled && (
+                  <ComposerPrimitive.AddAttachment asChild>
+                    <Button size="icon" variant="ghost" className="flex-shrink-0 h-9 w-9 rounded-full">
+                      <Paperclip className="h-4 w-4" />
+                    </Button>
+                  </ComposerPrimitive.AddAttachment>
+                )}
+
+                <ComposerPrimitive.Input
+                  placeholder="Tell me about the email you'd like to create..."
+                  className="flex-1 border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 py-2 text-sm resize-none outline-none min-h-[24px] max-h-[72px] overflow-y-auto"
+                />
+
+                {/* Mic button -- right of input (D-18, D-19) */}
+                {sttEnabled && (
+                  <>
+                    <ComposerPrimitive.Dictate asChild>
+                      <Button size="icon" variant="ghost" className="flex-shrink-0 h-9 w-9 rounded-full">
+                        <Mic className="h-4 w-4" />
+                      </Button>
+                    </ComposerPrimitive.Dictate>
+                    <ComposerPrimitive.StopDictation asChild>
+                      <Button size="icon" variant="ghost" className="flex-shrink-0 h-9 w-9 rounded-full bg-destructive/10 text-destructive animate-pulse ring-2 ring-destructive/30">
+                        <MicOff className="h-4 w-4" />
+                      </Button>
+                    </ComposerPrimitive.StopDictation>
+                  </>
+                )}
+
+                <ComposerPrimitive.Send asChild>
+                  <Button
+                    size="icon"
+                    className="flex-shrink-0 h-9 w-9 rounded-full bg-muted hover:bg-muted/80 text-foreground disabled:opacity-50"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                </ComposerPrimitive.Send>
+              </div>
+            </ComposerPrimitive.Root>
+          </div>
+        </ThreadPrimitive.Root>
+      </DragDropOverlay>
     </div>
   );
 }

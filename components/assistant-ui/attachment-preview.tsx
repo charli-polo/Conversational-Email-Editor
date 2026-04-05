@@ -1,7 +1,7 @@
 'use client';
 
 import { AttachmentPrimitive } from '@assistant-ui/react';
-import { X, FileText, ImageIcon } from 'lucide-react';
+import { X, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -12,11 +12,10 @@ import { Button } from '@/components/ui/button';
 export function ComposerAttachmentPreview() {
   return (
     <AttachmentPrimitive.Root className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-muted border border-border">
-      <AttachmentPrimitive.unstable_Thumb
-        fallback={<FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />}
-        className="h-3.5 w-3.5 flex-shrink-0"
-      />
-      <AttachmentPrimitive.Name className="max-w-[120px] truncate" />
+      <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+      <span className="max-w-[120px] truncate">
+        <AttachmentPrimitive.Name />
+      </span>
       <AttachmentPrimitive.Remove asChild>
         <Button
           size="icon"
