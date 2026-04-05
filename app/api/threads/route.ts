@@ -20,11 +20,22 @@ export async function GET() {
           .orderBy(messages.createdAt)
           .limit(1);
 
+        let agent_label: string | null = null;
+        if (thread.agentConfigSnapshot) {
+          try {
+            const snapshot = JSON.parse(thread.agentConfigSnapshot);
+            agent_label = snapshot.label ?? null;
+          } catch {
+            agent_label = null;
+          }
+        }
+
         return {
           id: thread.id,
           title: thread.title,
           is_archived: thread.isArchived,
           agent_id: thread.agentId,
+          agent_label,
           created_at: thread.createdAt,
           updated_at: thread.updatedAt,
           preview: firstMessage.length > 0 ? firstMessage[0].content : null,

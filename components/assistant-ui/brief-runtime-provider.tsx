@@ -8,8 +8,18 @@ import {
   type ThreadMessageLike,
 } from '@assistant-ui/react';
 import { useAuiState } from '@assistant-ui/store';
-import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { basePath } from '@/lib/base-path';
+
+export interface ThreadMeta {
+  preview: string | null;
+  agentLabel: string | null;
+}
+
+export const ThreadMetadataContext = createContext<Record<string, ThreadMeta>>({});
+export function useThreadMetadata() {
+  return useContext(ThreadMetadataContext);
+}
 
 interface BriefRuntimeProviderProps {
   children: React.ReactNode;
@@ -26,18 +36,30 @@ interface DbMessage {
 export function BriefRuntimeProvider({ children, onBriefContent }: BriefRuntimeProviderProps) {
   const difyConversationIdRef = useRef<string>('');
   const currentThreadIdRef = useRef<string>('');
+  const [threadMetadata, setThreadMetadata] = useState<Record<string, ThreadMeta>>({});
 
   const threadListAdapter: RemoteThreadListAdapter = useMemo(() => ({
     async list() {
       const res = await fetch(`${basePath}/api/threads`);
       const data = await res.json();
-      return {
-        threads: data.threads.map((t: Record<string, unknown>) => ({
-          remoteId: t.id as string,
+
+      // Build metadata map for drawer consumption
+      const meta: Record<string, ThreadMeta> = {};
+      const threads = data.threads.map((t: Record<string, unknown>) => {
+        const remoteId = t.id as string;
+        meta[remoteId] = {
+          preview: (t.preview as string) ?? null,
+          agentLabel: (t.agent_label as string) ?? null,
+        };
+        return {
+          remoteId,
           status: t.is_archived ? ('archived' as const) : ('regular' as const),
           title: (t.title as string) ?? undefined,
-        })),
-      };
+        };
+      });
+      setThreadMetadata(meta);
+
+      return { threads };
     },
     async initialize(localId: string) {
       const res = await fetch(`${basePath}/api/threads`, {
@@ -246,8 +268,10 @@ export function BriefRuntimeProvider({ children, onBriefContent }: BriefRuntimeP
   });
 
   return (
-    <AssistantRuntimeProvider runtime={runtime}>
-      {children}
-    </AssistantRuntimeProvider>
+    <ThreadMetadataContext.Provider value={threadMetadata}>
+      <AssistantRuntimeProvider runtime={runtime}>
+        {children}
+      </AssistantRuntimeProvider>
+    </ThreadMetadataContext.Provider>
   );
 }
