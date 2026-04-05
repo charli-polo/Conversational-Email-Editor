@@ -46,6 +46,17 @@
 - [x] **PERSIST-04**: Each conversation tagged with the agent configuration used at creation time
 - [x] **PERSIST-05**: Database works on Railway deployment (SQLite with persistent volume or data directory)
 
+### Dify Chat UX Enhancements
+
+- [ ] **UX-01**: Message action toolbar — assistant messages get like, dislike, copy, regenerate (last only), export .md; user messages get copy only. Hybrid visibility: feedback always visible, actions on hover (D-01, D-02, D-03)
+- [ ] **UX-02**: Feedback (like/dislike) persisted in SQLite and synced to Dify via POST /messages/{id}/feedbacks. Filled state restores on conversation resume (D-04)
+- [ ] **UX-03**: Opening statement from Dify /parameters displayed as first assistant message in new threads (D-05)
+- [ ] **UX-04**: Suggested questions from /parameters shown as clickable chips below opener message only. Test prompt chips in composer area unchanged. No follow-up suggested questions after replies (D-06, D-07, D-08)
+- [ ] **UX-05**: File upload via paperclip button (left of input) and drag-and-drop overlay. Queued files shown as preview chips below composer (D-09, D-10, D-11)
+- [ ] **UX-06**: Files in chat history: image thumbnails inline, documents as file name + icon with download link. Two-step Dify upload flow (D-12, D-13)
+- [ ] **UX-07**: Collapsible reasoning display — animated thinking dots with timer during streaming, tool badges as pills, "Show reasoning" toggle after response (D-14, D-15, D-16, D-17)
+- [ ] **UX-08**: Speech-to-text gated by /parameters flag. Microphone button in composer, audio sent to Dify POST /audio-to-text, transcribed text fills composer for editing before send (D-18, D-19)
+
 ## v2 Requirements
 
 ### Brief Rendering
@@ -67,6 +78,9 @@
 | Email generation from brief | Not in current scope |
 | Dify agent builder/config | Agent is pre-built externally |
 | Authentication | Not needed for this prototype |
+| Text-to-speech playback | Deferred from Phase 5 |
+| Workflow step visualization | Deferred from Phase 5 |
+| Feedback analytics dashboard | Deferred from Phase 5 |
 
 ## Traceability
 
@@ -83,7 +97,6 @@
 | FLOW-01 | Phase 3 | Complete |
 | FLOW-02 | Phase 3 | Complete |
 | FLOW-03 | Phase 3 | Complete |
-
 | CHAT-01 | Phase 4 | Complete |
 | CHAT-02 | Phase 4 | Complete |
 | CHAT-03 | Phase 4 | Complete |
@@ -96,12 +109,20 @@
 | PERSIST-03 | Phase 4 | Pending |
 | PERSIST-04 | Phase 4 | Complete |
 | PERSIST-05 | Phase 4 | Complete |
+| UX-01 | Phase 5 | Pending |
+| UX-02 | Phase 5 | Pending |
+| UX-03 | Phase 5 | Pending |
+| UX-04 | Phase 5 | Pending |
+| UX-05 | Phase 5 | Pending |
+| UX-06 | Phase 5 | Pending |
+| UX-07 | Phase 5 | Pending |
+| UX-08 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 23 total
-- Mapped to phases: 23
+- v1 requirements: 31 total
+- Mapped to phases: 31
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after initial definition*
+*Last updated: 2026-04-05 — Phase 5 UX requirements added (UX-01 through UX-08)*

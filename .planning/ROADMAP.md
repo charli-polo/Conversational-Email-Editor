@@ -95,6 +95,22 @@ Plans:
 
 **Verification:** User can register agents in settings, create test prompts, chat with selected agent using assistant-ui Thread UI, close browser, return and see past conversations in ThreadList sidebar, resume any conversation with its original agent config.
 
+## Phase 5: Dify Chat UX Enhancements
+
+**Goal:** Implement rich chat UX features using Dify API capabilities — conversation opener with opening statement and suggested questions, message feedback (like/dislike) with persistence, message action toolbar (copy, regenerate, export markdown), file/document upload with drag-and-drop, speech-to-text input, and collapsible thinking/reasoning display with tool badges
+**Requirements:** UX-01, UX-02, UX-03, UX-04, UX-05, UX-06, UX-07, UX-08
+**Depends on:** Phase 4
+**Plans:** 5 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Foundation: DB schema migration, Dify types/client extensions, API proxy routes, adapter implementations
+- [ ] 05-02-PLAN.md — SSE pipeline extension (agent_thought, message_id) + runtime wiring (adapters, opener, reasoning)
+- [ ] 05-03-PLAN.md — Message action toolbar UI + reasoning section + opener suggestion chips
+- [ ] 05-04-PLAN.md — File upload composer (paperclip, drag-drop, previews) + speech-to-text (mic button)
+- [ ] 05-05-PLAN.md — End-to-end human verification of all 19 decisions
+
+**Verification:** User sees opening statement in new threads with clickable suggestion chips. Like/dislike always visible on assistant messages with persistence. Copy/regenerate/export on hover. Collapsible reasoning with tool badges. File upload via paperclip and drag-and-drop. STT via mic button. All features gated by Dify /parameters config.
+
 ---
 *Roadmap created: 2026-03-25*
-*Updated: 2026-04-05 — Phases 2-3 marked complete, Phase 4 added*
+*Updated: 2026-04-05 — Phase 5 planned (5 plans in 4 waves)*
