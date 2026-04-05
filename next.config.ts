@@ -4,6 +4,7 @@ import path from 'path';
 const basePath = process.env.BASE_PATH || '';
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   serverExternalPackages: ['better-sqlite3'],
   basePath: basePath || undefined,
   reactStrictMode: true,

@@ -7,6 +7,8 @@ import {
 } from '@assistant-ui/react';
 import { ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { basePath } from '@/lib/base-path';
 
 function BriefMessage() {
   return (
@@ -31,23 +33,51 @@ function BriefMessage() {
   );
 }
 
-function BriefSuggestions() {
+function DynamicSuggestions() {
+  const [prompts, setPrompts] = useState<Array<{ id: string; name: string; text: string; autoSend: boolean }>>([]);
+
+  useEffect(() => {
+    fetch(`${basePath}/api/test-prompts`)
+      .then(res => res.json())
+      .then(data => setPrompts((Array.isArray(data) ? data : []).slice(0, 6)))
+      .catch(() => {}); // Silently fail -- suggestions are non-critical
+  }, []);
+
+  if (prompts.length === 0) {
+    // Fallback to hardcoded suggestions when no DB prompts exist
+    return (
+      <div className="flex flex-wrap gap-2 px-4 py-2">
+        <ThreadPrimitive.Suggestion
+          prompt="Create a product launch email"
+          autoSend
+          className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors text-foreground cursor-pointer"
+        >
+          Create a product launch email
+        </ThreadPrimitive.Suggestion>
+        <ThreadPrimitive.Suggestion
+          prompt="Write a newsletter update"
+          autoSend
+          className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors text-foreground cursor-pointer"
+        >
+          Write a newsletter update
+        </ThreadPrimitive.Suggestion>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-wrap gap-2 px-4 py-2">
-      <ThreadPrimitive.Suggestion
-        prompt="Create a product launch email"
-        autoSend
-        className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors text-foreground cursor-pointer"
-      >
-        Create a product launch email
-      </ThreadPrimitive.Suggestion>
-      <ThreadPrimitive.Suggestion
-        prompt="Write a newsletter update"
-        autoSend
-        className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors text-foreground cursor-pointer"
-      >
-        Write a newsletter update
-      </ThreadPrimitive.Suggestion>
+      {prompts.map(p => (
+        <ThreadPrimitive.Suggestion
+          key={p.id}
+          prompt={p.text}
+          method="replace"
+          {...(p.autoSend ? { autoSend: true } : {})}
+          className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors text-foreground cursor-pointer"
+        >
+          {p.name}
+        </ThreadPrimitive.Suggestion>
+      ))}
     </div>
   );
 }
@@ -71,7 +101,7 @@ export function BriefThread() {
 
         {/* Suggestion chips shown only on empty thread */}
         <ThreadPrimitive.Empty>
-          <BriefSuggestions />
+          <DynamicSuggestions />
         </ThreadPrimitive.Empty>
 
         <div className="p-4 border-t border-border">

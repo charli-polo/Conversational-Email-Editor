@@ -6,6 +6,7 @@ import { BriefRuntimeProvider } from '@/components/assistant-ui/brief-runtime-pr
 import { BriefThread } from '@/components/assistant-ui/brief-thread';
 import { BriefEmptyState } from '@/components/brief/brief-empty-state';
 import { SettingsSheet } from '@/components/settings/settings-sheet';
+import { ThreadListDrawer } from '@/components/assistant-ui/thread-list-drawer';
 
 export default function BriefPage() {
   const router = useRouter();
@@ -27,7 +28,8 @@ export default function BriefPage() {
       <div className="h-screen w-screen overflow-hidden flex flex-col">
         {/* Minimal header */}
         <header className="h-12 border-b border-border bg-background flex items-center justify-between px-6 flex-shrink-0">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            <ThreadListDrawer />
             <h1 className="text-lg font-semibold text-foreground">Email Brief</h1>
             <span className="ml-3 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">v{process.env.NEXT_PUBLIC_APP_VERSION}</span>
           </div>
