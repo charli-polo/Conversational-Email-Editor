@@ -5,36 +5,120 @@ import {
   ComposerPrimitive,
   MessagePrimitive,
 } from '@assistant-ui/react';
+import { useAuiState } from '@assistant-ui/store';
 import { ArrowUp, Paperclip, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useState, useEffect } from 'react';
 import { basePath } from '@/lib/base-path';
 import Markdown from 'react-markdown';
-import { ComposerAttachmentPreview } from './attachment-preview';
+import { AssistantActionToolbar, UserActionToolbar } from './action-toolbar';
+import { StreamingReasoningIndicator, ReasoningSection } from './reasoning-section';
+import { OpenerSuggestions } from './opener-suggestions';
+import { ComposerAttachmentPreview, MessageAttachmentDisplay } from './attachment-preview';
 import { DragDropOverlay } from './drag-drop-overlay';
 import { useDifyParams } from './brief-runtime-provider';
+
+/**
+ * AssistantMessageContent -- Reads message state via useAuiState to conditionally
+ * render streaming reasoning (D-14/D-16), post-response reasoning (D-17),
+ * attachment display (D-12), opener suggestions (D-06), and action toolbar.
+ */
+function AssistantMessageContent() {
+  const message = useAuiState((s) => s.message);
+
+  const custom = (message?.metadata?.custom ?? {}) as Record<string, unknown>;
+  const isOpener = custom.isOpener === true;
+  const suggestedQuestions = (custom.suggestedQuestions as string[]) || [];
+  const isStreamingReasoning = custom.isStreamingReasoning === true;
+  const streamingTools = (custom.streamingTools as string[]) || [];
+
+  // Extract reasoning parts from content
+  const content = message?.content;
+  const reasoningParts = Array.isArray(content)
+    ? content
+        .filter((p) => p.type === 'reasoning')
+        .map((p) => ({ text: (p as { text: string }).text }))
+    : [];
+
+  const reasoningText = reasoningParts.map((r) => r.text).join('\n\n');
+
+  // Check if message is still streaming
+  const isRunning = message?.status?.type === 'running';
+
+  // Extract image/document attachment parts from content for D-12
+  const attachmentParts = Array.isArray(content)
+    ? content.filter((p) => p.type === 'image' || p.type === 'file')
+    : [];
+
+  return (
+    <>
+      <div className="w-full text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
+        <MessagePrimitive.Content
+          components={{
+            Text: ({ text }) => <Markdown>{text}</Markdown>,
+          }}
+        />
+      </div>
+
+      {/* D-12: Render image/document attachments inline in assistant messages */}
+      {attachmentParts.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {attachmentParts.map((part, i: number) => (
+            <MessageAttachmentDisplay
+              key={i}
+              type={part.type === 'image' ? 'image' : 'document'}
+              name={(part as Record<string, unknown>).filename as string || 'attachment'}
+              url={
+                part.type === 'image'
+                  ? (part as Record<string, unknown>).image as string | undefined
+                  : undefined
+              }
+            />
+          ))}
+        </div>
+      )}
+
+      {/* D-14/D-16: Streaming reasoning indicator -- dots + timer while agent is thinking */}
+      {isStreamingReasoning && isRunning && (
+        <StreamingReasoningIndicator
+          tools={streamingTools}
+          reasoningText={reasoningText}
+        />
+      )}
+
+      {/* D-17: Post-response collapsible reasoning -- only when streaming is done and reasoning exists */}
+      {!isStreamingReasoning && !isRunning && reasoningParts.length > 0 && (
+        <ReasoningSection reasoningParts={reasoningParts} />
+      )}
+
+      {/* D-06: Suggested questions below opener message only */}
+      {isOpener && suggestedQuestions.length > 0 && (
+        <OpenerSuggestions suggestions={suggestedQuestions} />
+      )}
+
+      {/* D-01/D-02/D-03: Action toolbar */}
+      <AssistantActionToolbar />
+    </>
+  );
+}
 
 function BriefMessage() {
   return (
     <MessagePrimitive.Root>
       <MessagePrimitive.If user>
-        <div className="flex justify-end">
+        <div className="flex flex-col items-end group">
           <div className="max-w-[90%] rounded-lg px-4 py-2 bg-muted text-foreground">
             <div className="text-sm whitespace-pre-wrap break-words">
               <MessagePrimitive.Content />
             </div>
           </div>
+          <UserActionToolbar />
         </div>
       </MessagePrimitive.If>
       <MessagePrimitive.If assistant>
-        <div className="flex justify-start">
-          <div className="w-full text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
-            <MessagePrimitive.Content
-              components={{
-                Text: ({ text }) => <Markdown>{text}</Markdown>,
-              }}
-            />
-          </div>
+        <div className="flex flex-col items-start group">
+          <AssistantMessageContent />
         </div>
       </MessagePrimitive.If>
     </MessagePrimitive.Root>
@@ -95,6 +179,7 @@ export function BriefThread() {
   const sttEnabled = difyParams?.speech_to_text?.enabled ?? false;
 
   return (
+    <TooltipProvider delayDuration={300}>
     <div className="flex flex-col h-full bg-background border-r border-border">
       {/* Header */}
       <div className="p-4 border-b border-border">
@@ -172,5 +257,6 @@ export function BriefThread() {
         </ThreadPrimitive.Root>
       </DragDropOverlay>
     </div>
+    </TooltipProvider>
   );
 }
