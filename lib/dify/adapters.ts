@@ -138,15 +138,25 @@ export function createDifyDictationAdapter(): DictationAdapter {
                   body: formData,
                 });
                 const data = await res.json();
-                const result: DictationAdapter.Result = {
-                  transcript: data.text || '',
-                  isFinal: true,
-                };
-                subscribers.speechEnd.forEach((cb) => cb(result));
-                subscribers.speech.forEach((cb) => cb(result));
+                if (!res.ok || data.error) {
+                  console.error('Speech-to-text failed:', data.error || data.details || 'Unknown error');
+                  const errorResult: DictationAdapter.Result = {
+                    transcript: '[Speech-to-text is not configured. Please set up an STT model in Dify settings.]',
+                    isFinal: true,
+                  };
+                  subscribers.speechEnd.forEach((cb) => cb(errorResult));
+                  subscribers.speech.forEach((cb) => cb(errorResult));
+                } else {
+                  const result: DictationAdapter.Result = {
+                    transcript: data.text || '',
+                    isFinal: true,
+                  };
+                  subscribers.speechEnd.forEach((cb) => cb(result));
+                  subscribers.speech.forEach((cb) => cb(result));
+                }
               } catch {
                 subscribers.speechEnd.forEach((cb) =>
-                  cb({ transcript: '', isFinal: true })
+                  cb({ transcript: '[Speech-to-text unavailable]', isFinal: true })
                 );
               }
               status = { type: 'ended', reason: 'stopped' };
