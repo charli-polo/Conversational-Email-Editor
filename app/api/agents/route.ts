@@ -4,7 +4,10 @@ import { agents } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 function maskApiKey(key: string): string {
-  return key.length > 4 ? 'sk-...' + key.slice(-4) : '****';
+  if (key.length <= 8) return '****';
+  const dashIdx = key.indexOf('-');
+  const prefix = dashIdx > 0 ? key.slice(0, dashIdx + 1) : '';
+  return prefix + '...' + key.slice(-4);
 }
 
 export async function GET() {

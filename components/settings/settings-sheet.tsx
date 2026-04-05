@@ -2,24 +2,32 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+interface ActiveAgent {
+  label: string;
+  difyUrl: string | null;
+  baseUrl: string;
+}
+
 export function SettingsSheet() {
-  const [activeAgentLabel, setActiveAgentLabel] = useState<string | null>(null);
+  const [activeAgent, setActiveAgent] = useState<ActiveAgent | null>(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     fetch('/api/agents')
       .then((r) => r.json())
-      .then((agents: { label: string; isActive: boolean }[]) => {
+      .then((agents: { label: string; isActive: boolean; difyUrl: string | null; baseUrl: string }[]) => {
         const active = agents.find((a) => a.isActive);
-        setActiveAgentLabel(active?.label ?? null);
+        setActiveAgent(active ? { label: active.label, difyUrl: active.difyUrl, baseUrl: active.baseUrl } : null);
       })
-      .catch(() => setActiveAgentLabel(null));
+      .catch(() => setActiveAgent(null));
   }, [open]);
+
+  const agentUrl = activeAgent?.difyUrl || activeAgent?.baseUrl;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -36,9 +44,22 @@ export function SettingsSheet() {
           {/* Active agent display */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-muted-foreground">Active Agent</h3>
-            <p className="text-sm">
-              {activeAgentLabel || 'No agent selected'}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm">
+                {activeAgent?.label || 'No agent selected'}
+              </p>
+              {activeAgent && agentUrl && (
+                <a
+                  href={agentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  title="Open in Dify"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Link to full settings page */}

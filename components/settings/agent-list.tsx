@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Pencil, Trash2, Plus } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, Plus, ExternalLink } from 'lucide-react';
 import { DeleteConfirmDialog } from './delete-confirm-dialog';
 import { AgentSwitchDialog } from './agent-switch-dialog';
 import { basePath } from '@/lib/base-path';
@@ -178,12 +178,25 @@ export function AgentList({ refreshKey, onEdit, onRefresh }: AgentListProps) {
           {agents.map((agent) => (
             <TableRow key={agent.id}>
               <TableCell className="font-medium">
-                {agent.label}
-                {agent.isActive && (
-                  <Badge className="ml-2" variant="default">
-                    Active
-                  </Badge>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {agent.label}
+                  {agent.isActive && (
+                    <Badge variant="default">
+                      Active
+                    </Badge>
+                  )}
+                  {(agent.difyUrl || agent.baseUrl) && (
+                    <a
+                      href={agent.difyUrl || agent.baseUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      title="Open in Dify"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                </div>
               </TableCell>
               <TableCell className="text-muted-foreground font-mono text-xs">
                 {agent.apiKey}
