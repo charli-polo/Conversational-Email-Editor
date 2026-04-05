@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       apiKey: apiKey.trim(),
       baseUrl: baseUrl?.trim() || 'https://api.dify.ai',
       difyUrl: difyUrl?.trim() || null,
-      conversationMode: conversationMode || 'chatbot',
+      conversationMode: conversationMode || 'agent',
       isActive: isActive || false,
       createdAt: now,
       updatedAt: now,

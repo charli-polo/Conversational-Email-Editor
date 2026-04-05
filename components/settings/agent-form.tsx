@@ -43,7 +43,7 @@ export function AgentForm({ open, onOpenChange, agent, onSaved }: AgentFormProps
   const [apiKey, setApiKey] = useState('');
   const [baseUrl, setBaseUrl] = useState('https://api.dify.ai');
   const [difyUrl, setDifyUrl] = useState('');
-  const [conversationMode, setConversationMode] = useState('chatbot');
+  const [conversationMode, setConversationMode] = useState('agent');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -62,7 +62,7 @@ export function AgentForm({ open, onOpenChange, agent, onSaved }: AgentFormProps
         setApiKey('');
         setBaseUrl('https://api.dify.ai');
         setDifyUrl('');
-        setConversationMode('chatbot');
+        setConversationMode('agent');
       }
       setErrors({});
     }

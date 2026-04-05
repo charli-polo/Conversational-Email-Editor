@@ -6,7 +6,7 @@ export const agents = sqliteTable('agents', {
   apiKey: text('api_key').notNull(),
   baseUrl: text('base_url').notNull().default('https://api.dify.ai'),
   difyUrl: text('dify_url'),
-  conversationMode: text('conversation_mode', { enum: ['chatbot', 'agent'] }).notNull().default('chatbot'),
+  conversationMode: text('conversation_mode', { enum: ['chatbot', 'agent'] }).notNull().default('agent'),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(false),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),

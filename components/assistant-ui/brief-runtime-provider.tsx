@@ -2,6 +2,7 @@
 
 import {
   AssistantRuntimeProvider,
+  useAssistantRuntime,
   useExternalStoreRuntime,
   useRemoteThreadListRuntime,
   type RemoteThreadListAdapter,
@@ -9,6 +10,7 @@ import {
 } from '@assistant-ui/react';
 import { useAuiState } from '@assistant-ui/store';
 import { createContext, useContext, useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { basePath } from '@/lib/base-path';
 
 export interface ThreadMeta {
@@ -24,6 +26,7 @@ export function useThreadMetadata() {
 interface BriefRuntimeProviderProps {
   children: React.ReactNode;
   onBriefContent?: (content: string) => void;
+  initialThreadId?: string;
 }
 
 interface DbMessage {
@@ -33,7 +36,10 @@ interface DbMessage {
   created_at: string;
 }
 
-export function BriefRuntimeProvider({ children, onBriefContent }: BriefRuntimeProviderProps) {
+export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId }: BriefRuntimeProviderProps) {
+  const router = useRouter();
+  const routerRef = useRef(router);
+  routerRef.current = router;
   const difyConversationIdRef = useRef<string>('');
   const currentThreadIdRef = useRef<string>('');
   const [threadMetadata, setThreadMetadata] = useState<Record<string, ThreadMeta>>({});
@@ -70,6 +76,7 @@ export function BriefRuntimeProvider({ children, onBriefContent }: BriefRuntimeP
       const result = await res.json();
       difyConversationIdRef.current = '';
       currentThreadIdRef.current = result.id;
+      window.history.replaceState(null, '', `${basePath}/c/${result.id}`);
       return { remoteId: result.id, externalId: undefined };
     },
     async rename(remoteId: string, title: string) {
@@ -137,6 +144,16 @@ export function BriefRuntimeProvider({ children, onBriefContent }: BriefRuntimeP
       // Read the current thread's remoteId from assistant-ui store
       // This updates reactively when the user switches threads
       const remoteId = useAuiState((s) => s.threadListItem?.remoteId);
+
+      // Sync URL when thread changes
+      useEffect(() => {
+        if (remoteId) {
+          const expectedPath = `${basePath}/c/${remoteId}`;
+          if (window.location.pathname !== expectedPath) {
+            window.history.replaceState(null, '', expectedPath);
+          }
+        }
+      }, [remoteId]);
 
       // Load persisted messages when remoteId changes (thread switch)
       useEffect(() => {
@@ -270,8 +287,30 @@ export function BriefRuntimeProvider({ children, onBriefContent }: BriefRuntimeP
   return (
     <ThreadMetadataContext.Provider value={threadMetadata}>
       <AssistantRuntimeProvider runtime={runtime}>
+        {initialThreadId && <InitialThreadSwitcher threadId={initialThreadId} />}
         {children}
       </AssistantRuntimeProvider>
     </ThreadMetadataContext.Provider>
   );
+}
+
+function InitialThreadSwitcher({ threadId }: { threadId: string }) {
+  const runtime = useAssistantRuntime();
+  const switched = useRef(false);
+
+  useEffect(() => {
+    if (switched.current) return;
+    switched.current = true;
+    // Switch to the thread by remoteId after a short delay to let the thread list load
+    const timer = setTimeout(() => {
+      try {
+        runtime.threadList.switchToThread(threadId);
+      } catch {
+        // Thread may not exist yet — ignore
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [runtime, threadId]);
+
+  return null;
 }

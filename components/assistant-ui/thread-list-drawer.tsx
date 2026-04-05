@@ -9,17 +9,27 @@ import { Badge } from '@/components/ui/badge';
 import { useThreadMetadata } from '@/components/assistant-ui/brief-runtime-provider';
 import { Plus, History, Check, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { basePath } from '@/lib/base-path';
 
 function ThreadListItem({ onSelect }: { onSelect: () => void }) {
   const metadata = useThreadMetadata();
+  const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const remoteId = useAuiState((s: any) => s.threadListItem?.remoteId) as string | undefined;
   const meta = remoteId ? metadata[remoteId] : undefined;
 
+  const handleSelect = () => {
+    if (remoteId) {
+      window.history.replaceState(null, '', `${basePath}/c/${remoteId}`);
+    }
+    onSelect();
+  };
+
   return (
     <ThreadListItemPrimitive.Root className="group flex items-center">
       <ThreadListItemPrimitive.Trigger
-        onClick={onSelect}
+        onClick={handleSelect}
         className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors rounded-md data-[active]:bg-accent data-[active]:font-medium"
       >
         <div className="flex items-center gap-2">
@@ -58,6 +68,11 @@ function ThreadListEmpty() {
 export function ThreadListDrawer() {
   const [open, setOpen] = useState(false);
 
+  const handleNewConversation = () => {
+    window.history.replaceState(null, '', basePath || '/');
+    setOpen(false);
+  };
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -75,7 +90,7 @@ export function ThreadListDrawer() {
               variant="outline"
               className="w-full justify-start gap-2"
               size="sm"
-              onClick={() => setOpen(false)}
+              onClick={handleNewConversation}
             >
               <Plus className="h-4 w-4" />
               New conversation
