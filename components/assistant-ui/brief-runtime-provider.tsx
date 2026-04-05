@@ -269,7 +269,15 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
             }),
           });
 
-          if (!res.ok || !res.body) throw new Error('Failed to fetch');
+          if (!res.ok || !res.body) {
+            const errorBody = !res.body ? 'No response body' : await res.text().catch(() => '');
+            console.error('Chat API error:', res.status, errorBody);
+            setMessages((prev) => [
+              ...prev,
+              { role: 'assistant' as const, content: [{ type: 'text' as const, text: 'Something went wrong. Please try again.' }] },
+            ]);
+            return;
+          }
 
           const reader = res.body.getReader();
           const decoder = new TextDecoder();

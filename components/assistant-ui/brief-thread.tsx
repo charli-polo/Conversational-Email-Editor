@@ -211,6 +211,10 @@ export function BriefThread() {
           <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* D-05/D-06: Opener always at top of conversation */}
             <ThreadOpener />
+            {/* D-06: Dify suggested questions, right below opener, hidden once messages exist */}
+            <ThreadPrimitive.Empty>
+              <OpenerSuggestionsBlock />
+            </ThreadPrimitive.Empty>
             <ThreadPrimitive.Messages
               components={{
                 Message: BriefMessage,
@@ -218,9 +222,8 @@ export function BriefThread() {
             />
           </ThreadPrimitive.Viewport>
 
-          {/* Suggestion chips shown only on empty thread */}
+          {/* Test prompt chips shown only on empty thread */}
           <ThreadPrimitive.Empty>
-            <OpenerSuggestionsBlock />
             <DynamicSuggestions />
           </ThreadPrimitive.Empty>
 
