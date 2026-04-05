@@ -231,12 +231,12 @@ export function BriefThread() {
                 {sttEnabled && (
                   <>
                     <ComposerPrimitive.Dictate asChild>
-                      <Button size="icon" variant="ghost" className="flex-shrink-0 h-9 w-9 rounded-full">
+                      <Button size="icon" variant="ghost" className="flex-shrink-0 h-9 w-9 rounded-full disabled:hidden">
                         <Mic className="h-4 w-4" />
                       </Button>
                     </ComposerPrimitive.Dictate>
                     <ComposerPrimitive.StopDictation asChild>
-                      <Button size="icon" variant="ghost" className="flex-shrink-0 h-9 w-9 rounded-full bg-destructive/10 text-destructive animate-pulse ring-2 ring-destructive/30">
+                      <Button size="icon" variant="ghost" className="flex-shrink-0 h-9 w-9 rounded-full bg-destructive/10 text-destructive animate-pulse ring-2 ring-destructive/30 disabled:hidden">
                         <MicOff className="h-4 w-4" />
                       </Button>
                     </ComposerPrimitive.StopDictation>
