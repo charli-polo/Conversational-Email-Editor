@@ -3,6 +3,7 @@ import { basePath } from '@/lib/base-path';
 
 export interface DifyAdapterOptions {
   conversationId?: string;
+  threadId?: string;
   onConversationId?: (id: string) => void;
   onBriefContent?: (content: string) => void;
 }
@@ -19,6 +20,7 @@ export function createDifyAdapter(options: DifyAdapterOptions = {}): ChatModelAd
         body: JSON.stringify({
           message: text,
           conversation_id: options.conversationId || '',
+          threadId: options.threadId || '',
         }),
         signal: abortSignal,
       });
