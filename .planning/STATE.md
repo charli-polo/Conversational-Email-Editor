@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in-progress
-last_updated: "2026-04-05T21:54:18Z"
+status: unknown
+last_updated: "2026-04-05T22:01:07.572Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 11
-  percent: 69
+  completed_plans: 12
+  percent: 90
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Two-step AI conversational flow — brief then edit
-**Current focus:** Phase 05 — dify-chat-ux-enhancements (Plan 02 next)
+**Current focus:** Phase 05 — dify-chat-ux-enhancements (Plan 03 next)
 
 ## Milestone: v1.0 — Brief Flow MVP + Settings & Persistence
 
@@ -48,6 +48,7 @@ Progress: [█████████░] 90%
 - 2026-04-05: Completed 04-04-PLAN.md — Settings page UI with agent/test prompt CRUD, D-09 agent switch confirmation (SETTINGS-01 done)
 - 2026-04-05: Completed 04-07-PLAN.md — ThreadListDrawer gap closure: empty state, preview text, agent badges (PERSIST-02 done)
 - 2026-04-05: Completed 05-01-PLAN.md — Dify backend foundations: DB schema migration, types/client extensions, 3 API proxy routes, 3 adapter factories (UX-02, UX-06, UX-08 done)
+- 2026-04-05: Completed 05-02-PLAN.md — SSE streaming extension and runtime wiring: agent_thought forwarding, adapters, opener, reasoning, DifyParamsContext (UX-03, UX-04, UX-07 done)
 
 ## Decisions
 
@@ -65,6 +66,7 @@ Progress: [█████████░] 90%
 - **05-01:** Feedback route persists locally even if Dify API call fails (graceful degradation)
 - **05-01:** Parameters route now resolves active agent config instead of using env vars only
 - **05-01:** DictationAdapter uses MediaRecorder with audio/webm for Dify STT endpoint
+- [Phase 05]: Used any type for onNew to work around AppendMessage readonly union type; dictation adapter key (not speech) per v0.12 API
 
 ## Accumulated Context
 
