@@ -204,6 +204,10 @@ export function BriefThread() {
       <DragDropOverlay>
         <ThreadPrimitive.Root className="flex-1 flex flex-col">
           <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* D-05/D-06: Opener at top of viewport, only on empty thread */}
+            <ThreadPrimitive.Empty>
+              <ThreadOpener />
+            </ThreadPrimitive.Empty>
             <ThreadPrimitive.Messages
               components={{
                 Message: BriefMessage,
@@ -211,9 +215,8 @@ export function BriefThread() {
             />
           </ThreadPrimitive.Viewport>
 
-          {/* Opener + suggestions shown on empty thread */}
+          {/* Suggestion chips shown only on empty thread */}
           <ThreadPrimitive.Empty>
-            <ThreadOpener />
             <DynamicSuggestions />
           </ThreadPrimitive.Empty>
 
