@@ -35,7 +35,3 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
 
-      - name: Generate domain for tag environment
-        run: railway domain --service Conversational-Email-Editor
-        env:
-          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
