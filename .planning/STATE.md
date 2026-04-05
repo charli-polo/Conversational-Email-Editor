@@ -3,33 +3,34 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-25T14:31:11.482Z"
+last_updated: "2026-04-05T18:56:10.437Z"
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 3
-  percent: 33
+  total_plans: 10
+  completed_plans: 4
+  percent: 75
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-25)
+See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Two-step AI conversational flow — brief then edit
-**Current focus:** Phase 02 — brief-page-ui
+**Current focus:** Phase 04 — settings-panel-chat-upgrade-conversation-persistence
 
-## Milestone: v1.0 — Brief Flow MVP
+## Milestone: v1.0 — Brief Flow MVP + Settings & Persistence
 
 | Phase | Name | Status | Progress |
 |-------|------|--------|----------|
 | 1 | Dify Agent API Integration | Complete | 100% |
-| 2 | Brief Page UI | In Progress | 50% |
-| 3 | Flow Navigation & Wiring | Pending | 0% |
+| 2 | Brief Page UI | Complete | 100% |
+| 3 | Flow Navigation & Wiring | Complete | 100% |
+| 4 | Settings Panel & Conversation Persistence | In Progress | 1/6 plans |
 
-Progress: [████████░░] 75%
+Progress: [████░░░░░░] 40%
 
 ## Session Log
 
@@ -38,6 +39,15 @@ Progress: [████████░░] 75%
 - 2026-03-25: Completed 01-02-PLAN.md — SSE proxy route with end-to-end Dify verification (DIFY-01, DIFY-02, DIFY-03 done)
 - 2026-03-25: Phase 01 (Dify Agent API Integration) complete
 - 2026-03-25: Completed 02-01-PLAN.md — Dify parameters proxy route and useBriefChat hook (BRIEF-02 done)
+- 2026-04-05: Phases 2-3 marked complete (code already shipped: brief page UI, route swap, navigation)
+- 2026-04-05: Phase 4 added — Settings Panel, Chat Upgrade & Conversation Persistence (12 requirements, 6 plans)
+- 2026-04-05: Added CHAT-01/02/03 requirements for assistant-ui v0.12 upgrade (replacing custom chat with library primitives)
+- 2026-04-05: Completed 04-01-PLAN.md — SQLite database foundation with better-sqlite3, Drizzle ORM, 4-table schema (PERSIST-01, PERSIST-05 done)
+
+## Decisions
+
+- **04-01:** Track drizzle migrations in git for Railway deployment (removed drizzle/ from .gitignore)
+- **04-01:** Use ISO text timestamps in SQLite for human readability
 
 ---
-*Last updated: 2026-03-25*
+*Last updated: 2026-04-05*

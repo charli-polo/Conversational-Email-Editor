@@ -14,16 +14,37 @@
 
 ### Brief Page UI
 
-- [ ] **BRIEF-01**: New page with two-panel layout (chat left, empty panel right)
+- [x] **BRIEF-01**: New page with two-panel layout (chat left, empty panel right)
 - [x] **BRIEF-02**: Chat panel supports multi-turn conversation with Dify agent
-- [ ] **BRIEF-03**: Right panel shows empty/placeholder state during brief phase
-- [ ] **BRIEF-04**: "Start editing" button visible to transition to email editor
+- [x] **BRIEF-03**: Right panel shows empty/placeholder state during brief phase
+- [x] **BRIEF-04**: "Start editing" button visible to transition to email editor
 
 ### Flow Navigation
 
-- [ ] **FLOW-01**: Brief page is the landing page (entry point of the app)
-- [ ] **FLOW-02**: Button transitions from brief page to email editor page
-- [ ] **FLOW-03**: Email editor page works exactly as current implementation
+- [x] **FLOW-01**: Brief page is the landing page (entry point of the app)
+- [x] **FLOW-02**: Button transitions from brief page to email editor page
+- [x] **FLOW-03**: Email editor page works exactly as current implementation
+
+### Chat UI Upgrade
+
+- [ ] **CHAT-01**: Upgrade @assistant-ui/react to v0.12.x and replace custom brief chat panel (~676 LOC) with library primitives (Thread, Composer, MessagePrimitive)
+- [ ] **CHAT-02**: Test prompt chips rendered via ThreadPrimitive.Suggestion instead of custom implementation
+- [ ] **CHAT-03**: Brief chat wired through assistant-ui runtime with existing Dify ChatModelAdapter
+
+### Settings Panel
+
+- [ ] **SETTINGS-01**: Settings page accessible from main navigation with agent configuration form (label, API key, base URL, conversation mode)
+- [ ] **SETTINGS-02**: CRUD operations for registered agents (create, list, edit, delete)
+- [ ] **SETTINGS-03**: Test prompts management — create, list, edit, delete reusable prompts that appear as quick-start chips in chat
+- [ ] **SETTINGS-04**: Active agent selection — choose which registered agent powers the brief chat
+
+### Conversation Persistence
+
+- [x] **PERSIST-01**: File-based SQLite database stores conversations with messages, timestamps, and agent config reference
+- [ ] **PERSIST-02**: Conversation list sidebar showing past conversations with preview text
+- [ ] **PERSIST-03**: User can resume a past conversation (loads messages + restores agent config context)
+- [ ] **PERSIST-04**: Each conversation tagged with the agent configuration used at creation time
+- [x] **PERSIST-05**: Database works on Railway deployment (SQLite with persistent volume or data directory)
 
 ## v2 Requirements
 
@@ -55,17 +76,30 @@
 | DIFY-02 | Phase 1 | Complete |
 | DIFY-03 | Phase 1 | Complete |
 | DIFY-04 | Phase 1 | Complete |
-| BRIEF-01 | Phase 2 | Pending |
+| BRIEF-01 | Phase 2 | Complete |
 | BRIEF-02 | Phase 2 | Complete |
-| BRIEF-03 | Phase 2 | Pending |
-| BRIEF-04 | Phase 2 | Pending |
-| FLOW-01 | Phase 3 | Pending |
-| FLOW-02 | Phase 3 | Pending |
-| FLOW-03 | Phase 3 | Pending |
+| BRIEF-03 | Phase 2 | Complete |
+| BRIEF-04 | Phase 2 | Complete |
+| FLOW-01 | Phase 3 | Complete |
+| FLOW-02 | Phase 3 | Complete |
+| FLOW-03 | Phase 3 | Complete |
+
+| CHAT-01 | Phase 4 | Pending |
+| CHAT-02 | Phase 4 | Pending |
+| CHAT-03 | Phase 4 | Pending |
+| SETTINGS-01 | Phase 4 | Pending |
+| SETTINGS-02 | Phase 4 | Pending |
+| SETTINGS-03 | Phase 4 | Pending |
+| SETTINGS-04 | Phase 4 | Pending |
+| PERSIST-01 | Phase 4 | Complete |
+| PERSIST-02 | Phase 4 | Pending |
+| PERSIST-03 | Phase 4 | Pending |
+| PERSIST-04 | Phase 4 | Pending |
+| PERSIST-05 | Phase 4 | Complete |
 
 **Coverage:**
-- v1 requirements: 11 total
-- Mapped to phases: 11
+- v1 requirements: 23 total
+- Mapped to phases: 23
 - Unmapped: 0
 
 ---
