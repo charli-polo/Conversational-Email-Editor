@@ -344,7 +344,17 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
                   if (data.message_id) lastDifyMessageId = data.message_id;
                   continue;
                 }
-                if (data.event === 'error') continue;
+                if (data.event === 'error') {
+                  const errorMsg = data.message || 'Something went wrong. Please try again.';
+                  setMessages((prev) => {
+                    const lastMsg = prev[prev.length - 1];
+                    if (lastMsg?.role === 'assistant') {
+                      return [...prev.slice(0, -1), { role: 'assistant' as const, content: [{ type: 'text' as const, text: errorMsg }] }];
+                    }
+                    return [...prev, { role: 'assistant' as const, content: [{ type: 'text' as const, text: errorMsg }] }];
+                  });
+                  continue;
+                }
 
                 if (data.answer) {
                   fullContent += data.answer;

@@ -43,7 +43,7 @@ export function createDifyFeedbackAdapter(
  */
 export function createDifyAttachmentAdapter(): AttachmentAdapter {
   return {
-    accept: 'image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx,.md',
+    accept: 'image/*,.pdf',
 
     async add({ file }: { file: File }): Promise<PendingAttachment> {
       return {

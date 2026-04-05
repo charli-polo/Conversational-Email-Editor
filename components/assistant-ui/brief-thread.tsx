@@ -293,7 +293,7 @@ export function BriefThread() {
               <div className="flex items-end gap-2 px-3 py-2">
                 {/* Paperclip button -- left of input (D-09) */}
                 {fileUploadEnabled && (
-                  <FileUploadButton accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx,.md" />
+                  <FileUploadButton accept="image/*,.pdf" />
                 )}
 
                 <ComposerPrimitive.Input
