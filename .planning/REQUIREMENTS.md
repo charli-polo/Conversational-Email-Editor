@@ -48,7 +48,7 @@
 
 ### Dify Chat UX Enhancements
 
-- [ ] **UX-01**: Message action toolbar — assistant messages get like, dislike, copy, regenerate (last only), export .md; user messages get copy only. Hybrid visibility: feedback always visible, actions on hover (D-01, D-02, D-03)
+- [x] **UX-01**: Message action toolbar — assistant messages get like, dislike, copy, regenerate (last only), export .md; user messages get copy only. Hybrid visibility: feedback always visible, actions on hover (D-01, D-02, D-03)
 - [ ] **UX-02**: Feedback (like/dislike) persisted in SQLite and synced to Dify via POST /messages/{id}/feedbacks. Filled state restores on conversation resume (D-04)
 - [x] **UX-03**: Opening statement from Dify /parameters displayed as first assistant message in new threads (D-05)
 - [x] **UX-04**: Suggested questions from /parameters shown as clickable chips below opener message only. Test prompt chips in composer area unchanged. No follow-up suggested questions after replies (D-06, D-07, D-08)
@@ -109,7 +109,7 @@
 | PERSIST-03 | Phase 4 | Pending |
 | PERSIST-04 | Phase 4 | Complete |
 | PERSIST-05 | Phase 4 | Complete |
-| UX-01 | Phase 5 | Pending |
+| UX-01 | Phase 5 | Complete |
 | UX-02 | Phase 5 | Pending |
 | UX-03 | Phase 5 | Complete |
 | UX-04 | Phase 5 | Complete |

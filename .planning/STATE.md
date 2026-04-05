@@ -49,6 +49,7 @@ Progress: [█████████░] 90%
 - 2026-04-05: Completed 04-07-PLAN.md — ThreadListDrawer gap closure: empty state, preview text, agent badges (PERSIST-02 done)
 - 2026-04-05: Completed 05-01-PLAN.md — Dify backend foundations: DB schema migration, types/client extensions, 3 API proxy routes, 3 adapter factories (UX-02, UX-06, UX-08 done)
 - 2026-04-05: Completed 05-02-PLAN.md — SSE streaming extension and runtime wiring: agent_thought forwarding, adapters, opener, reasoning, DifyParamsContext (UX-03, UX-04, UX-07 done)
+- 2026-04-05: Completed 05-03-PLAN.md — Message action toolbar, streaming reasoning indicator, collapsible reasoning section, opener suggestions wired into BriefMessage (UX-01, UX-07 done)
 
 ## Decisions
 
@@ -68,6 +69,9 @@ Progress: [█████████░] 90%
 - **05-01:** DictationAdapter uses MediaRecorder with audio/webm for Dify STT endpoint
 - [Phase 05]: Used any type for onNew to work around AppendMessage readonly union type; dictation adapter key (not speech) per v0.12 API
 - [Phase 05]: Used FileText icon as universal file type in composer chips; AttachmentPrimitive.Name wrapped in span for truncation styling
+- **05-03:** Used useAuiState from @assistant-ui/store (v0.12 API) instead of deprecated useMessage for message metadata access
+- **05-03:** Three separate ActionBarPrimitive.Root instances for hybrid visibility (feedback always, copy/export hover, regenerate last-only)
+- **05-03:** StreamingReasoningIndicator and ReasoningSection as distinct components for streaming vs post-response states
 
 ## Accumulated Context
 

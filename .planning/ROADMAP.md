@@ -100,12 +100,12 @@ Plans:
 **Goal:** Implement rich chat UX features using Dify API capabilities — conversation opener with opening statement and suggested questions, message feedback (like/dislike) with persistence, message action toolbar (copy, regenerate, export markdown), file/document upload with drag-and-drop, speech-to-text input, and collapsible thinking/reasoning display with tool badges
 **Requirements:** UX-01, UX-02, UX-03, UX-04, UX-05, UX-06, UX-07, UX-08
 **Depends on:** Phase 4
-**Plans:** 5 plans
+**Plans:** 4/5 plans executed
 
 Plans:
 - [x] 05-01-PLAN.md — Foundation: DB schema migration, Dify types/client extensions, API proxy routes, adapter implementations
 - [x] 05-02-PLAN.md — SSE pipeline extension (agent_thought, message_id) + runtime wiring (adapters, opener, reasoning)
-- [ ] 05-03-PLAN.md — Message action toolbar UI + reasoning section + opener suggestion chips
+- [x] 05-03-PLAN.md — Message action toolbar UI + reasoning section + opener suggestion chips
 - [x] 05-04-PLAN.md — File upload composer (paperclip, drag-drop, previews) + speech-to-text (mic button)
 - [ ] 05-05-PLAN.md — End-to-end human verification of all 19 decisions
 
