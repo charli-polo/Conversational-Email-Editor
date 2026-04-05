@@ -175,7 +175,7 @@ function DynamicSuggestions() {
 
 export function BriefThread() {
   const difyParams = useDifyParams();
-  const fileUploadEnabled = difyParams?.file_upload?.image?.enabled ?? false;
+  const fileUploadEnabled = difyParams?.file_upload?.enabled ?? difyParams?.file_upload?.image?.enabled ?? false;
   const sttEnabled = difyParams?.speech_to_text?.enabled ?? false;
 
   return (

@@ -14,11 +14,18 @@ export async function GET() {
     }
 
     const data = await response.json();
+    const fileUpload = data.file_upload || {};
     return NextResponse.json({
       opening_statement: data.opening_statement || '',
       suggested_questions: data.suggested_questions || [],
       speech_to_text: data.speech_to_text || { enabled: false },
-      file_upload: data.file_upload || { image: { enabled: false, number_limits: 0, transfer_methods: [] } },
+      file_upload: {
+        enabled: fileUpload.enabled ?? fileUpload.image?.enabled ?? false,
+        allowed_file_types: fileUpload.allowed_file_types || [],
+        allowed_file_extensions: fileUpload.allowed_file_extensions || [],
+        number_limits: fileUpload.number_limits || 0,
+        image: fileUpload.image || { enabled: false, number_limits: 0, transfer_methods: [] },
+      },
       system_parameters: data.system_parameters || {},
     });
   } catch (err) {

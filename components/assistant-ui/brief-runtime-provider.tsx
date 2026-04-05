@@ -28,7 +28,13 @@ export interface DifyParams {
   opening_statement: string;
   suggested_questions: string[];
   speech_to_text: { enabled: boolean };
-  file_upload: { image: { enabled: boolean; number_limits: number; transfer_methods: string[] } };
+  file_upload: {
+    enabled: boolean;
+    allowed_file_types: string[];
+    allowed_file_extensions: string[];
+    number_limits: number;
+    image: { enabled: boolean; number_limits: number; transfer_methods: string[] };
+  };
   system_parameters: Record<string, unknown>;
 }
 
