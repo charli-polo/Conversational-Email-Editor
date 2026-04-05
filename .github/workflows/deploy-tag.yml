@@ -30,9 +30,8 @@ jobs:
           TAG=${GITHUB_REF#refs/tags/}
           echo "Linking to environment: $TAG"
           railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment "$TAG"
-          railway link --service Conversational-Email-Editor
           echo "Deploying to environment: $TAG"
-          railway up --detach
+          railway up --service Conversational-Email-Editor --detach
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
 
