@@ -8,28 +8,30 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
+      - name: Link to project
+        run: railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment production
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
 
-      - name: Create environment and deploy
+      - name: Create environment for tag
         run: |
           TAG=${GITHUB_REF#refs/tags/}
-          echo "Deploying tag $TAG as Railway environment: $TAG"
+          echo "Creating environment: $TAG"
+          railway environment new "$TAG" --copy production || echo "Environment $TAG may already exist, continuing..."
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
 
-          # Link to the project
-          railway link --project "$RAILWAY_PROJECT_ID"
-
-          # Create new environment by duplicating production
-          railway environment "$TAG" 2>/dev/null || echo "Environment may already exist, continuing..."
-
-          # Deploy to the tag environment
+      - name: Deploy to tag environment
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "Deploying to environment: $TAG"
           railway up \
             --environment "$TAG" \
             --service Conversational-Email-Editor \
             --detach
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
