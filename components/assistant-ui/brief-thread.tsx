@@ -9,6 +9,7 @@ import { ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { basePath } from '@/lib/base-path';
+import Markdown from 'react-markdown';
 
 function BriefMessage() {
   return (
@@ -25,7 +26,11 @@ function BriefMessage() {
       <MessagePrimitive.If assistant>
         <div className="flex justify-start">
           <div className="w-full text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
-            <MessagePrimitive.Content />
+            <MessagePrimitive.Content
+              components={{
+                Text: ({ text }) => <Markdown>{text}</Markdown>,
+              }}
+            />
           </div>
         </div>
       </MessagePrimitive.If>
@@ -40,11 +45,10 @@ function DynamicSuggestions() {
     fetch(`${basePath}/api/test-prompts`)
       .then(res => res.json())
       .then(data => setPrompts((Array.isArray(data) ? data : []).slice(0, 6)))
-      .catch(() => {}); // Silently fail -- suggestions are non-critical
+      .catch(() => {});
   }, []);
 
   if (prompts.length === 0) {
-    // Fallback to hardcoded suggestions when no DB prompts exist
     return (
       <div className="flex flex-wrap gap-2 px-4 py-2">
         <ThreadPrimitive.Suggestion

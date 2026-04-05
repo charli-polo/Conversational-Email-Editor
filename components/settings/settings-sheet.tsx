@@ -4,14 +4,25 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-interface SettingsSheetProps {
-  activeAgentLabel?: string;
-}
+export function SettingsSheet() {
+  const [activeAgentLabel, setActiveAgentLabel] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
-export function SettingsSheet({ activeAgentLabel }: SettingsSheetProps) {
+  useEffect(() => {
+    if (!open) return;
+    fetch('/api/agents')
+      .then((r) => r.json())
+      .then((agents: { label: string; isActive: boolean }[]) => {
+        const active = agents.find((a) => a.isActive);
+        setActiveAgentLabel(active?.label ?? null);
+      })
+      .catch(() => setActiveAgentLabel(null));
+  }, [open]);
+
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <Settings className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />

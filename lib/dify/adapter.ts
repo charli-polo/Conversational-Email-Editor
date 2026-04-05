@@ -2,13 +2,13 @@ import type { ChatModelAdapter } from '@assistant-ui/react';
 import { basePath } from '@/lib/base-path';
 
 export interface DifyAdapterOptions {
-  conversationId?: string;
-  threadId?: string;
+  getConversationId: () => string;
+  getThreadId: () => string;
   onConversationId?: (id: string) => void;
   onBriefContent?: (content: string) => void;
 }
 
-export function createDifyAdapter(options: DifyAdapterOptions = {}): ChatModelAdapter {
+export function createDifyAdapter(options: DifyAdapterOptions): ChatModelAdapter {
   return {
     async *run({ messages, abortSignal }) {
       const lastMessage = messages[messages.length - 1];
@@ -19,8 +19,8 @@ export function createDifyAdapter(options: DifyAdapterOptions = {}): ChatModelAd
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          conversation_id: options.conversationId || '',
-          threadId: options.threadId || '',
+          conversation_id: options.getConversationId(),
+          threadId: options.getThreadId(),
         }),
         signal: abortSignal,
       });
@@ -78,8 +78,7 @@ export function createDifyAdapter(options: DifyAdapterOptions = {}): ChatModelAd
 
               yield { content: [{ type: 'text' as const, text: displayText || '...' }] };
 
-              if (data.conversation_id && !options.conversationId) {
-                options.conversationId = data.conversation_id;
+              if (data.conversation_id && !options.getConversationId()) {
                 options.onConversationId?.(data.conversation_id);
               }
             }
