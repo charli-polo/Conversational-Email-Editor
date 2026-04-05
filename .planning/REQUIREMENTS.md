@@ -52,10 +52,10 @@
 - [ ] **UX-02**: Feedback (like/dislike) persisted in SQLite and synced to Dify via POST /messages/{id}/feedbacks. Filled state restores on conversation resume (D-04)
 - [x] **UX-03**: Opening statement from Dify /parameters displayed as first assistant message in new threads (D-05)
 - [x] **UX-04**: Suggested questions from /parameters shown as clickable chips below opener message only. Test prompt chips in composer area unchanged. No follow-up suggested questions after replies (D-06, D-07, D-08)
-- [ ] **UX-05**: File upload via paperclip button (left of input) and drag-and-drop overlay. Queued files shown as preview chips below composer (D-09, D-10, D-11)
-- [ ] **UX-06**: Files in chat history: image thumbnails inline, documents as file name + icon with download link. Two-step Dify upload flow (D-12, D-13)
+- [x] **UX-05**: File upload via paperclip button (left of input) and drag-and-drop overlay. Queued files shown as preview chips below composer (D-09, D-10, D-11)
+- [x] **UX-06**: Files in chat history: image thumbnails inline, documents as file name + icon with download link. Two-step Dify upload flow (D-12, D-13)
 - [x] **UX-07**: Collapsible reasoning display — animated thinking dots with timer during streaming, tool badges as pills, "Show reasoning" toggle after response (D-14, D-15, D-16, D-17)
-- [ ] **UX-08**: Speech-to-text gated by /parameters flag. Microphone button in composer, audio sent to Dify POST /audio-to-text, transcribed text fills composer for editing before send (D-18, D-19)
+- [x] **UX-08**: Speech-to-text gated by /parameters flag. Microphone button in composer, audio sent to Dify POST /audio-to-text, transcribed text fills composer for editing before send (D-18, D-19)
 
 ## v2 Requirements
 
@@ -113,10 +113,10 @@
 | UX-02 | Phase 5 | Pending |
 | UX-03 | Phase 5 | Complete |
 | UX-04 | Phase 5 | Complete |
-| UX-05 | Phase 5 | Pending |
-| UX-06 | Phase 5 | Pending |
+| UX-05 | Phase 5 | Complete |
+| UX-06 | Phase 5 | Complete |
 | UX-07 | Phase 5 | Complete |
-| UX-08 | Phase 5 | Pending |
+| UX-08 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 31 total

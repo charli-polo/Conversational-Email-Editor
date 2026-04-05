@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-05T22:01:07.572Z"
+last_updated: "2026-04-05T22:05:26.335Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 12
+  completed_plans: 13
   percent: 90
 ---
 
@@ -67,6 +67,7 @@ Progress: [█████████░] 90%
 - **05-01:** Parameters route now resolves active agent config instead of using env vars only
 - **05-01:** DictationAdapter uses MediaRecorder with audio/webm for Dify STT endpoint
 - [Phase 05]: Used any type for onNew to work around AppendMessage readonly union type; dictation adapter key (not speech) per v0.12 API
+- [Phase 05]: Used FileText icon as universal file type in composer chips; AttachmentPrimitive.Name wrapped in span for truncation styling
 
 ## Accumulated Context
 

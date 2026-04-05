@@ -106,7 +106,7 @@ Plans:
 - [x] 05-01-PLAN.md — Foundation: DB schema migration, Dify types/client extensions, API proxy routes, adapter implementations
 - [x] 05-02-PLAN.md — SSE pipeline extension (agent_thought, message_id) + runtime wiring (adapters, opener, reasoning)
 - [ ] 05-03-PLAN.md — Message action toolbar UI + reasoning section + opener suggestion chips
-- [ ] 05-04-PLAN.md — File upload composer (paperclip, drag-drop, previews) + speech-to-text (mic button)
+- [x] 05-04-PLAN.md — File upload composer (paperclip, drag-drop, previews) + speech-to-text (mic button)
 - [ ] 05-05-PLAN.md — End-to-end human verification of all 19 decisions
 
 **Verification:** User sees opening statement in new threads with clickable suggestion chips. Like/dislike always visible on assistant messages with persistence. Copy/regenerate/export on hover. Collapsible reasoning with tool badges. File upload via paperclip and drag-and-drop. STT via mic button. All features gated by Dify /parameters config.
