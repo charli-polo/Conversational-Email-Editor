@@ -14,12 +14,22 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy to Railway service named after tag
+      - name: Create environment and deploy
         run: |
           TAG=${GITHUB_REF#refs/tags/}
-          SERVICE_NAME="app-${TAG}"
-          echo "Deploying tag $TAG as Railway service: $SERVICE_NAME"
-          railway up --service "$SERVICE_NAME" --detach
+          echo "Deploying tag $TAG as Railway environment: $TAG"
+
+          # Link to the project
+          railway link --project "$RAILWAY_PROJECT_ID"
+
+          # Create new environment by duplicating production
+          railway environment "$TAG" 2>/dev/null || echo "Environment may already exist, continuing..."
+
+          # Deploy to the tag environment
+          railway up \
+            --environment "$TAG" \
+            --service Conversational-Email-Editor \
+            --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
