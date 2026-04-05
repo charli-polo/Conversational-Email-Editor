@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-04-05T19:13:42.487Z"
+status: in-progress
+last_updated: "2026-04-05T19:59:48Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 10
-  completed_plans: 8
-  percent: 50
+  total_plans: 11
+  completed_plans: 10
+  percent: 90
 ---
 
 # Project State
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 | 1 | Dify Agent API Integration | Complete | 100% |
 | 2 | Brief Page UI | Complete | 100% |
 | 3 | Flow Navigation & Wiring | Complete | 100% |
-| 4 | Settings Panel & Conversation Persistence | In Progress | 4/6 plans |
+| 4 | Settings Panel & Conversation Persistence | In Progress | 7/7 plans |
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Session Log
 
@@ -46,6 +46,7 @@ Progress: [████████░░] 80%
 - 2026-04-05: Completed 04-02-PLAN.md — Upgraded assistant-ui to v0.12.x, replaced custom chat with library primitives, added SettingsSheet (CHAT-01, CHAT-02, CHAT-03 done)
 - 2026-04-05: Completed 04-03-PLAN.md — Agent and test prompt API routes with CRUD endpoints
 - 2026-04-05: Completed 04-04-PLAN.md — Settings page UI with agent/test prompt CRUD, D-09 agent switch confirmation (SETTINGS-01 done)
+- 2026-04-05: Completed 04-07-PLAN.md — ThreadListDrawer gap closure: empty state, preview text, agent badges (PERSIST-02 done)
 
 ## Decisions
 
@@ -57,8 +58,11 @@ Progress: [████████░░] 80%
 - **04-04:** Agent switch confirmation archives active thread before activating new agent per D-09
 - **04-04:** Test prompt reordering via up/down arrows in dropdown actions menu
 
+- **04-07:** Used React context (ThreadMetadataContext) to pass metadata to drawer since ThreadListItemPrimitive doesn't support custom props
+- **04-07:** Used metadata map length check for empty state since ThreadListPrimitive.Empty not available in v0.12
+
 ---
-*Last updated: 2026-04-05 — Completed 04-04-PLAN.md (Settings Page UI)*
+*Last updated: 2026-04-05 — Completed 04-07-PLAN.md (ThreadListDrawer Gap Closure)*
 
 - [Phase 04]: Refactored Dify client to accept optional AgentConfig for backward compatibility with env vars
 - [Phase 04]: API key masking uses sk-...last4 format on all agent GET responses

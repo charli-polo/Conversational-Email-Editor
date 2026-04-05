@@ -41,7 +41,7 @@
 ### Conversation Persistence
 
 - [x] **PERSIST-01**: File-based SQLite database stores conversations with messages, timestamps, and agent config reference
-- [ ] **PERSIST-02**: Conversation list sidebar showing past conversations with preview text
+- [x] **PERSIST-02**: Conversation list sidebar showing past conversations with preview text
 - [ ] **PERSIST-03**: User can resume a past conversation (loads messages + restores agent config context)
 - [x] **PERSIST-04**: Each conversation tagged with the agent configuration used at creation time
 - [x] **PERSIST-05**: Database works on Railway deployment (SQLite with persistent volume or data directory)
@@ -92,7 +92,7 @@
 | SETTINGS-03 | Phase 4 | Complete |
 | SETTINGS-04 | Phase 4 | Complete |
 | PERSIST-01 | Phase 4 | Complete |
-| PERSIST-02 | Phase 4 | Pending |
+| PERSIST-02 | Phase 4 | Complete |
 | PERSIST-03 | Phase 4 | Pending |
 | PERSIST-04 | Phase 4 | Complete |
 | PERSIST-05 | Phase 4 | Complete |
