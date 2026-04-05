@@ -1,4 +1,4 @@
-import { sendChatMessage } from '@/lib/dify/client';
+import { sendChatMessage, getActiveAgentConfig } from '@/lib/dify/client';
 
 export async function POST(req: Request) {
   try {
@@ -13,9 +13,12 @@ export async function POST(req: Request) {
       );
     }
 
+    // Use active agent from DB if available, otherwise fall back to env vars
+    const agentConfig = await getActiveAgentConfig();
+
     let difyResponse: Response;
     try {
-      difyResponse = await sendChatMessage({ query: message.trim(), conversation_id });
+      difyResponse = await sendChatMessage({ query: message.trim(), conversation_id }, agentConfig ?? undefined);
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : '';
       if (errMsg.includes('not configured')) {
