@@ -242,13 +242,14 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
         if (!text) return;
 
         // Extract file references from attachments (from AttachmentAdapter)
-        const attachments = message.attachments as Array<{ metadata?: Record<string, unknown>; type?: string }> | undefined;
+        // The adapter stores the Dify upload_file_id as the attachment id
+        const attachments = message.attachments as Array<{ id: string; type?: string }> | undefined;
         const files = attachments
-          ?.filter((a) => a.metadata?.difyUploadFileId)
+          ?.filter((a) => a.id)
           .map((a) => ({
             type: (a.type === 'image' ? 'image' : 'document') as 'image' | 'document',
             transfer_method: 'local_file' as const,
-            upload_file_id: a.metadata!.difyUploadFileId as string,
+            upload_file_id: a.id,
           })) || [];
 
         setMessages((prev) => [

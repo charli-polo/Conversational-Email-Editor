@@ -72,9 +72,9 @@ export function createDifyAttachmentAdapter(): AttachmentAdapter {
       const data = await res.json();
       return {
         ...attachment,
+        id: data.id, // Dify upload_file_id — extracted in onNew to reference in chat
         status: { type: 'complete' },
         content: [{ type: 'text', text: `[File: ${attachment.name}]` }],
-        metadata: { difyUploadFileId: data.id },
       } as unknown as CompleteAttachment;
     },
 
