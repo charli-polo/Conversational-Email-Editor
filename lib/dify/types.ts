@@ -1,9 +1,18 @@
+// File reference for POST /chat-messages files array
+export interface DifyChatFile {
+  type: 'image' | 'document' | 'audio' | 'video' | 'custom';
+  transfer_method: 'remote_url' | 'local_file';
+  url?: string;
+  upload_file_id?: string;
+}
+
 // Request type for sending chat messages
 export interface DifyChatRequest {
   query: string;
   conversation_id?: string;
   user?: string;
   inputs?: Record<string, string>;
+  files?: DifyChatFile[];
 }
 
 // SSE event: message chunk (streamed multiple times per response)
@@ -40,8 +49,45 @@ export interface DifyErrorEvent {
   message: string;
 }
 
+// SSE event: agent thinking/reasoning step
+export interface DifyAgentThoughtEvent {
+  event: 'agent_thought';
+  id: string;
+  task_id: string;
+  message_id: string;
+  thought: string;
+  tool: string;
+  tool_input: string;
+  observation: string;
+  message_files: string[];
+  created_at: number;
+  conversation_id: string;
+}
+
 // Union type for all possible SSE events
-export type DifySSEEvent = DifyMessageEvent | DifyMessageEndEvent | DifyErrorEvent;
+export type DifySSEEvent = DifyMessageEvent | DifyMessageEndEvent | DifyErrorEvent | DifyAgentThoughtEvent;
+
+// Request for POST /messages/{message_id}/feedbacks
+export interface DifyFeedbackRequest {
+  rating: 'like' | 'dislike' | null;
+  user: string;
+  content?: string;
+}
+
+// Response from POST /files/upload
+export interface DifyFileUploadResponse {
+  id: string;
+  name: string;
+  size: number;
+  extension: string;
+  mime_type: string;
+  created_at: number;
+}
+
+// Response from POST /audio-to-text
+export interface DifyAudioToTextResponse {
+  text: string;
+}
 
 // Response type for GET /parameters
 export interface DifyParametersResponse {

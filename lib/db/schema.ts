@@ -38,5 +38,7 @@ export const messages = sqliteTable('messages', {
   conversationId: text('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
   role: text('role', { enum: ['user', 'assistant'] }).notNull(),
   content: text('content').notNull(),
+  difyMessageId: text('dify_message_id'),
+  rating: text('rating', { enum: ['like', 'dislike'] }),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
