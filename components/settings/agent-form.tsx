@@ -101,7 +101,13 @@ export function AgentForm({ open, onOpenChange, agent, onSaved }: AgentFormProps
         conversationMode,
       };
       if (difyUrl.trim()) {
-        body.difyUrl = difyUrl.trim();
+        // Normalize Dify app URL to always end with /configuration
+        let normalizedDifyUrl = difyUrl.trim();
+        const difyAppMatch = normalizedDifyUrl.match(/^(https?:\/\/[^/]+\/app\/[a-f0-9-]+)\/.*/);
+        if (difyAppMatch) {
+          normalizedDifyUrl = difyAppMatch[1] + '/configuration';
+        }
+        body.difyUrl = normalizedDifyUrl;
       }
       if (apiKey.trim()) {
         body.apiKey = apiKey.trim();
@@ -195,7 +201,7 @@ export function AgentForm({ open, onOpenChange, agent, onSaved }: AgentFormProps
               id="agent-dify-url"
               value={difyUrl}
               onChange={(e) => setDifyUrl(e.target.value)}
-              placeholder="https://dify.example.com"
+              placeholder="https://cloud.dify.ai/app/.../configuration"
             />
           </div>
 
