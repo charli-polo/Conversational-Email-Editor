@@ -28,14 +28,9 @@ function ThreadOpener() {
   if (!difyParams?.opening_statement) return null;
 
   return (
-    <div className="p-4 space-y-3">
-      <div className="flex flex-col items-start">
-        <div className="w-full text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
-          <Markdown>{difyParams.opening_statement}</Markdown>
-        </div>
-        {difyParams.suggested_questions && difyParams.suggested_questions.length > 0 && (
-          <OpenerSuggestions suggestions={difyParams.suggested_questions} />
-        )}
+    <div className="flex flex-col items-start">
+      <div className="w-full text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
+        <Markdown>{difyParams.opening_statement}</Markdown>
       </div>
     </div>
   );
@@ -140,6 +135,16 @@ function BriefMessage() {
   );
 }
 
+function OpenerSuggestionsBlock() {
+  const difyParams = useDifyParams();
+  if (!difyParams?.suggested_questions?.length) return null;
+  return (
+    <div className="px-4 py-1">
+      <OpenerSuggestions suggestions={difyParams.suggested_questions} />
+    </div>
+  );
+}
+
 function DynamicSuggestions() {
   const [prompts, setPrompts] = useState<Array<{ id: string; name: string; text: string; autoSend: boolean }>>([]);
 
@@ -204,10 +209,8 @@ export function BriefThread() {
       <DragDropOverlay>
         <ThreadPrimitive.Root className="flex-1 flex flex-col">
           <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* D-05/D-06: Opener at top of viewport, only on empty thread */}
-            <ThreadPrimitive.Empty>
-              <ThreadOpener />
-            </ThreadPrimitive.Empty>
+            {/* D-05/D-06: Opener always at top of conversation */}
+            <ThreadOpener />
             <ThreadPrimitive.Messages
               components={{
                 Message: BriefMessage,
@@ -217,6 +220,7 @@ export function BriefThread() {
 
           {/* Suggestion chips shown only on empty thread */}
           <ThreadPrimitive.Empty>
+            <OpenerSuggestionsBlock />
             <DynamicSuggestions />
           </ThreadPrimitive.Empty>
 
