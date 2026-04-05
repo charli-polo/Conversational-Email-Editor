@@ -208,15 +208,15 @@ export function BriefThread() {
 
   return (
     <TooltipProvider delayDuration={300}>
-    <div className="flex flex-col h-full bg-background border-r border-border">
+    <div className="flex flex-col h-full min-h-0 bg-background border-r border-border">
       {/* Header */}
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border flex-shrink-0">
         <h2 className="text-lg font-semibold text-foreground">Chat</h2>
       </div>
 
       <DragDropOverlay>
-        <ThreadPrimitive.Root className="flex-1 flex flex-col">
-          <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto p-4 space-y-4">
+        <ThreadPrimitive.Root className="flex-1 flex flex-col min-h-0">
+          <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4">
             {/* D-05/D-06: Opener always at top of conversation */}
             <ThreadOpener />
             {/* D-06: Dify suggested questions, right below opener, hidden once messages exist */}

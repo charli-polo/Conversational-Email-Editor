@@ -10,7 +10,7 @@ import type { ReactNode } from 'react';
  */
 export function DragDropOverlay({ children }: { children: ReactNode }) {
   return (
-    <ComposerPrimitive.AttachmentDropzone className="relative flex-1 flex flex-col group/dropzone">
+    <ComposerPrimitive.AttachmentDropzone className="relative flex-1 flex flex-col min-h-0 group/dropzone">
       {children}
       {/* Overlay shown when dragging files -- AttachmentDropzone sets data-dragging */}
       <div className="absolute inset-0 bg-primary/5 border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center pointer-events-none z-10 opacity-0 transition-opacity group-data-[dragging]/dropzone:opacity-100">
