@@ -139,7 +139,7 @@ export function createDifyDictationAdapter(): DictationAdapter {
                 });
                 const data = await res.json();
                 if (!res.ok || data.error) {
-                  console.error('Speech-to-text failed:', data.error || data.details || 'Unknown error');
+                  console.warn('Speech-to-text failed:', data.error || data.details || 'Unknown error');
                   const errorResult: DictationAdapter.Result = {
                     transcript: '[Speech-to-text is not configured. Please set up an STT model in Dify settings.]',
                     isFinal: true,
