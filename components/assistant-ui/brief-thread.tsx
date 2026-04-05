@@ -20,16 +20,36 @@ import { DragDropOverlay } from './drag-drop-overlay';
 import { useDifyParams } from './brief-runtime-provider';
 
 /**
+ * ThreadOpener -- D-05/D-06: Static opener rendered via ThreadPrimitive.Empty.
+ * Not injected as a fake message (runtime reconciliation would wipe it).
+ */
+function ThreadOpener() {
+  const difyParams = useDifyParams();
+  if (!difyParams?.opening_statement) return null;
+
+  return (
+    <div className="p-4 space-y-3">
+      <div className="flex flex-col items-start">
+        <div className="w-full text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
+          <Markdown>{difyParams.opening_statement}</Markdown>
+        </div>
+        {difyParams.suggested_questions && difyParams.suggested_questions.length > 0 && (
+          <OpenerSuggestions suggestions={difyParams.suggested_questions} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
  * AssistantMessageContent -- Reads message state via useAuiState to conditionally
  * render streaming reasoning (D-14/D-16), post-response reasoning (D-17),
- * attachment display (D-12), opener suggestions (D-06), and action toolbar.
+ * attachment display (D-12), and action toolbar.
  */
 function AssistantMessageContent() {
   const message = useAuiState((s) => s.message);
 
   const custom = (message?.metadata?.custom ?? {}) as Record<string, unknown>;
-  const isOpener = custom.isOpener === true;
-  const suggestedQuestions = (custom.suggestedQuestions as string[]) || [];
   const isStreamingReasoning = custom.isStreamingReasoning === true;
   const streamingTools = (custom.streamingTools as string[]) || [];
 
@@ -90,11 +110,6 @@ function AssistantMessageContent() {
       {/* D-17: Post-response collapsible reasoning -- only when streaming is done and reasoning exists */}
       {!isStreamingReasoning && !isRunning && reasoningParts.length > 0 && (
         <ReasoningSection reasoningParts={reasoningParts} />
-      )}
-
-      {/* D-06: Suggested questions below opener message only */}
-      {isOpener && suggestedQuestions.length > 0 && (
-        <OpenerSuggestions suggestions={suggestedQuestions} />
       )}
 
       {/* D-01/D-02/D-03: Action toolbar */}
@@ -196,8 +211,9 @@ export function BriefThread() {
             />
           </ThreadPrimitive.Viewport>
 
-          {/* Suggestion chips shown only on empty thread */}
+          {/* Opener + suggestions shown on empty thread */}
           <ThreadPrimitive.Empty>
+            <ThreadOpener />
             <DynamicSuggestions />
           </ThreadPrimitive.Empty>
 

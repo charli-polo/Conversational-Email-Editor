@@ -196,25 +196,10 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
         }
         currentThreadIdRef.current = remoteId;
 
-        // Skip fetch if we just initialized this thread — inject opener for brand new thread
+        // Skip fetch if we just initialized this thread — it has no messages yet
         if (justInitializedThreadRef.current === remoteId) {
           justInitializedThreadRef.current = null;
-          if (params?.opening_statement) {
-            setMessages([{
-              role: 'assistant' as const,
-              id: `opener-${remoteId}`,
-              content: [{ type: 'text' as const, text: params.opening_statement }],
-              metadata: {
-                custom: {
-                  isOpener: true,
-                  suggestedQuestions: params.suggested_questions || [],
-                },
-              },
-            }]);
-          } else {
-            // Clear previous thread's messages; fallback effect will inject opener once params load
-            setMessages([]);
-          }
+          setMessages([]);
           return;
         }
 
@@ -246,24 +231,6 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
           })
           .catch(() => setMessages([]));
       }, [remoteId]);
-
-      // Inject opener for empty threads that were not just initialized
-      useEffect(() => {
-        if (!remoteId || messages.length > 0 || !params?.opening_statement) return;
-        if (justInitializedThreadRef.current === remoteId) return;
-
-        setMessages([{
-          role: 'assistant' as const,
-          id: `opener-${remoteId}`,
-          content: [{ type: 'text' as const, text: params.opening_statement }],
-          metadata: {
-            custom: {
-              isOpener: true,
-              suggestedQuestions: params.suggested_questions || [],
-            },
-          },
-        }]);
-      }, [remoteId, params, messages.length]);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const onNew = useCallback(async (message: any) => {
