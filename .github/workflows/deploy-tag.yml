@@ -35,3 +35,12 @@ jobs:
             --detach
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+
+      - name: Generate domain for tag environment
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "Generating domain for environment: $TAG"
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} --environment "$TAG"
+          railway domain --service Conversational-Email-Editor
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
