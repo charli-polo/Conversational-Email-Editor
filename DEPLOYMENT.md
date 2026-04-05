@@ -5,6 +5,7 @@
 Project: **Email-Brief**
 Service: **Conversational-Email-Editor**
 Project ID: `01314f0d-a655-4ed0-a40c-33ddac0398c2`
+Production URL: https://conversational-email-editor-production.up.railway.app
 
 ## Architecture
 
@@ -15,31 +16,36 @@ charli-polo/Conversational-Email-Editor (GitHub)
 │   └──> Railway auto-deploys to "production" (GitHub integration)
 │
 └── git tag v0.2.0 && git push origin v0.2.0
-    └──> GitHub Action creates frozen environment "v0.2.0"
+    └──> GitHub Action creates frozen environment "v0.2.0" with its own URL
 
 Railway project "Email-Brief"
 │
-├── production (always latest main, auto-deployed on merge)
-│   └── https://xxx-production.up.railway.app
-│
-├── v0.1.0 (frozen snapshot)
-│   └── https://xxx-v010.up.railway.app
-│
-├── v0.2.0 (frozen snapshot)
-│   └── https://xxx-v020.up.railway.app
-│
-└── v1.0.0 (frozen snapshot)
-    └── https://xxx-v100.up.railway.app
+├── production   (always latest main, auto-deployed on merge)
+├── v0.1.0       (frozen snapshot)
+├── v0.2.0       (frozen snapshot)
+└── ...
 ```
 
 Each environment is a separate running instance with its own URL and env vars.
+Environments are copied from production, so they inherit env vars and domain config.
 
 ## How it works
 
-| Trigger | What happens | Where |
-|---------|-------------|-------|
-| PR merged to `main` | Railway auto-deploys latest code | `production` environment |
-| `v*` tag pushed | GitHub Action creates a new Railway environment copied from production, then deploys the tagged code | `vX.Y.Z` environment |
+| Trigger | What happens |
+|---------|-------------|
+| PR merged to `main` | Railway auto-deploys latest code to `production` environment |
+| `v*` tag pushed | GitHub Action creates a new Railway environment copied from production, then deploys the tagged code into it |
+
+## GitHub Action
+
+File: `.github/workflows/deploy-tag.yml`
+
+Triggered on any `v*` tag push. Steps:
+1. Runs in official Railway CLI container (`ghcr.io/railwayapp/cli:latest`)
+2. Links to the project's production environment
+3. Creates a new environment by copying production (inherits env vars + domain)
+4. Re-links to the new tag environment
+5. Deploys the checked-out tag code
 
 ## Daily workflow
 
@@ -51,44 +57,17 @@ Each environment is a separate running instance with its own URL and env vars.
 git tag v0.2.0
 git push origin v0.2.0
 # --> GitHub Action fires
-# --> New Railway environment "v0.2.0" created
-# --> Code deployed, new URL appears in Railway dashboard
-
-# Later, another version:
-git tag v0.3.0
-git push origin v0.3.0
-# --> Same flow, separate environment "v0.3.0"
+# --> New Railway environment "v0.2.0" created with its own URL
 ```
 
-## GitHub Action
+## Secrets (GitHub repo)
 
-File: `.github/workflows/deploy-tag.yml`
+| Secret | Description | How to get it |
+|--------|-------------|---------------|
+| `RAILWAY_API_TOKEN` | Account-scoped token (NOT project or workspace) | railway.com/account/tokens → New Token → scope to account |
+| `RAILWAY_PROJECT_ID` | `01314f0d-a655-4ed0-a40c-33ddac0398c2` | Railway dashboard → Project Settings |
 
-Triggered on any `v*` tag push. Steps:
-1. Uses official Railway CLI container (`ghcr.io/railwayapp/cli:latest`)
-2. Links to the project
-3. Creates a new environment by copying `production`
-4. Deploys the checked-out tag code to that environment
-
-## Setup (one-time)
-
-### Prerequisites
-- Railway CLI installed locally (`npm install -g @railway/cli`)
-- Railway account linked to GitHub repo
-
-### Secrets required in GitHub repo
-
-| Secret | Value | How to get it |
-|--------|-------|---------------|
-| `RAILWAY_API_TOKEN` | Account-scoped token (NOT project-scoped) | Railway dashboard → Account Settings → Tokens → New Token → scope to account |
-| `RAILWAY_PROJECT_ID` | `01314f0d-a655-4ed0-a40c-33ddac0398c2` | Already set |
-
-### Token types (important)
-
-| Token | Env var | Scope | Use case |
-|-------|---------|-------|----------|
-| Project token | `RAILWAY_TOKEN` | Single project, deploy only | Simple `railway up` deployments |
-| Account token | `RAILWAY_API_TOKEN` | All projects, full management | Creating environments, linking projects (what we need) |
+**Important:** The token must be **account-scoped**. Project tokens can deploy but cannot create environments. Workspace tokens also won't work.
 
 ## Local Railway CLI
 
