@@ -37,11 +37,14 @@ export async function POST(req: Request) {
       }
     }
 
+    // Extract file references from request body
+    const files = body.files || undefined;
+
     // Send to Dify with stale conversation_id fallback
     let difyResponse: Response;
     try {
       difyResponse = await sendChatMessage(
-        { query: message.trim(), conversation_id },
+        { query: message.trim(), conversation_id, files },
         agentConfig ?? undefined
       );
     } catch (err) {
@@ -51,7 +54,7 @@ export async function POST(req: Request) {
       if (conversation_id) {
         try {
           difyResponse = await sendChatMessage(
-            { query: message.trim(), conversation_id: '' },
+            { query: message.trim(), conversation_id: '', files },
             agentConfig ?? undefined
           );
           // Clear stale dify_conversation_id on thread
@@ -74,9 +77,10 @@ export async function POST(req: Request) {
     const decoder = new TextDecoder();
     const encoder = new TextEncoder();
 
-    // Track full assistant content and dify conversation_id for persistence
+    // Track full assistant content, dify conversation_id, and dify message_id for persistence
     let fullAssistantContent = '';
     let difyConversationId = '';
+    let difyMessageId = '';
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -101,15 +105,36 @@ export async function POST(req: Request) {
                     if (parsed.conversation_id) {
                       difyConversationId = parsed.conversation_id;
                     }
+                    if (parsed.message_id) {
+                      difyMessageId = parsed.message_id;
+                    }
                     controller.enqueue(encoder.encode(
                       `data: ${JSON.stringify({ answer: parsed.answer, conversation_id: parsed.conversation_id, message_id: parsed.message_id })}\n\n`
                     ));
+                  } else if (parsed.event === 'agent_thought') {
+                    controller.enqueue(encoder.encode(
+                      `data: ${JSON.stringify({
+                        event: 'agent_thought',
+                        id: parsed.id,
+                        thought: parsed.thought || '',
+                        tool: parsed.tool || '',
+                        tool_input: parsed.tool_input || '',
+                        observation: parsed.observation || '',
+                        message_id: parsed.message_id,
+                      })}\n\n`
+                    ));
+                    if (parsed.message_id) {
+                      difyMessageId = parsed.message_id;
+                    }
                   } else if (parsed.event === 'message_end') {
                     if (parsed.conversation_id) {
                       difyConversationId = parsed.conversation_id;
                     }
+                    if (parsed.message_id) {
+                      difyMessageId = parsed.message_id;
+                    }
                     controller.enqueue(encoder.encode(
-                      `data: ${JSON.stringify({ event: 'done', conversation_id: parsed.conversation_id })}\n\n`
+                      `data: ${JSON.stringify({ event: 'done', conversation_id: parsed.conversation_id, message_id: parsed.message_id })}\n\n`
                     ));
                   } else if (parsed.event === 'error') {
                     controller.enqueue(encoder.encode(
@@ -138,6 +163,7 @@ export async function POST(req: Request) {
                   conversationId: threadId,
                   role: 'assistant' as const,
                   content: fullAssistantContent,
+                  difyMessageId: difyMessageId || null,
                   createdAt: now,
                 },
               ]);
