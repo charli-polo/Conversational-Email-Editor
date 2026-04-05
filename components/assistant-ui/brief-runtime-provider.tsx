@@ -42,6 +42,7 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
   routerRef.current = router;
   const difyConversationIdRef = useRef<string>('');
   const currentThreadIdRef = useRef<string>('');
+  const justInitializedThreadRef = useRef<string | null>(null);
   const [threadMetadata, setThreadMetadata] = useState<Record<string, ThreadMeta>>({});
 
   const threadListAdapter: RemoteThreadListAdapter = useMemo(() => ({
@@ -76,6 +77,7 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
       const result = await res.json();
       difyConversationIdRef.current = '';
       currentThreadIdRef.current = result.id;
+      justInitializedThreadRef.current = result.id;
       window.history.replaceState(null, '', `${basePath}/c/${result.id}`);
       return { remoteId: result.id, externalId: undefined };
     },
@@ -162,6 +164,13 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
           return;
         }
         currentThreadIdRef.current = remoteId;
+
+        // Skip fetch if we just initialized this thread — messages are already in state from onNew
+        if (justInitializedThreadRef.current === remoteId) {
+          justInitializedThreadRef.current = null;
+          return;
+        }
+
         fetch(`${basePath}/api/threads/${remoteId}/messages`)
           .then((r) => r.json())
           .then((data) => {
