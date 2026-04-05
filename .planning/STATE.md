@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-04-05T19:59:48Z"
+last_updated: "2026-04-05T21:54:18Z"
 progress:
-  total_phases: 4
-  completed_phases: 1
-  total_plans: 11
-  completed_plans: 10
-  percent: 90
+  total_phases: 5
+  completed_phases: 2
+  total_plans: 16
+  completed_plans: 11
+  percent: 69
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Two-step AI conversational flow — brief then edit
-**Current focus:** Phase 04 — settings-panel-chat-upgrade-conversation-persistence
+**Current focus:** Phase 05 — dify-chat-ux-enhancements (Plan 02 next)
 
 ## Milestone: v1.0 — Brief Flow MVP + Settings & Persistence
 
@@ -47,6 +47,7 @@ Progress: [█████████░] 90%
 - 2026-04-05: Completed 04-03-PLAN.md — Agent and test prompt API routes with CRUD endpoints
 - 2026-04-05: Completed 04-04-PLAN.md — Settings page UI with agent/test prompt CRUD, D-09 agent switch confirmation (SETTINGS-01 done)
 - 2026-04-05: Completed 04-07-PLAN.md — ThreadListDrawer gap closure: empty state, preview text, agent badges (PERSIST-02 done)
+- 2026-04-05: Completed 05-01-PLAN.md — Dify backend foundations: DB schema migration, types/client extensions, 3 API proxy routes, 3 adapter factories (UX-02, UX-06, UX-08 done)
 
 ## Decisions
 
@@ -61,8 +62,18 @@ Progress: [█████████░] 90%
 - **04-07:** Used React context (ThreadMetadataContext) to pass metadata to drawer since ThreadListItemPrimitive doesn't support custom props
 - **04-07:** Used metadata map length check for empty state since ThreadListPrimitive.Empty not available in v0.12
 
+- **05-01:** Feedback route persists locally even if Dify API call fails (graceful degradation)
+- **05-01:** Parameters route now resolves active agent config instead of using env vars only
+- **05-01:** DictationAdapter uses MediaRecorder with audio/webm for Dify STT endpoint
+
+## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 5 added: Dify Chat UX Enhancements (conversation opener, feedback, message actions, file upload, STT, thinking dots, suggested questions)
+
 ---
-*Last updated: 2026-04-05 — Completed 04-07-PLAN.md (ThreadListDrawer Gap Closure)*
+*Last updated: 2026-04-05 — Phase 5 added to roadmap*
 
 - [Phase 04]: Refactored Dify client to accept optional AgentConfig for backward compatibility with env vars
 - [Phase 04]: API key masking uses sk-...last4 format on all agent GET responses
