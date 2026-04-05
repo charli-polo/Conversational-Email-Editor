@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getParameters } from '@/lib/dify/client';
+import { getParameters, getActiveAgentConfig } from '@/lib/dify/client';
 
 export async function GET() {
   try {
-    const response = await getParameters();
+    const agentConfig = await getActiveAgentConfig();
+    const response = await getParameters('default-user', agentConfig ?? undefined);
 
     if (!response.ok) {
       return NextResponse.json(
@@ -16,6 +17,9 @@ export async function GET() {
     return NextResponse.json({
       opening_statement: data.opening_statement || '',
       suggested_questions: data.suggested_questions || [],
+      speech_to_text: data.speech_to_text || { enabled: false },
+      file_upload: data.file_upload || { image: { enabled: false, number_limits: 0, transfer_methods: [] } },
+      system_parameters: data.system_parameters || {},
     });
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : '';
