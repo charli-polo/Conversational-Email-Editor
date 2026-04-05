@@ -14,7 +14,6 @@ import { basePath } from '@/lib/base-path';
 import Markdown from 'react-markdown';
 import { AssistantActionToolbar, UserActionToolbar } from './action-toolbar';
 import { StreamingReasoningIndicator, ReasoningSection } from './reasoning-section';
-import { OpenerSuggestions } from './opener-suggestions';
 import { ComposerAttachmentPreview, MessageAttachmentDisplay } from './attachment-preview';
 import { DragDropOverlay } from './drag-drop-overlay';
 import { useDifyParams } from './brief-runtime-provider';
@@ -139,8 +138,17 @@ function OpenerSuggestionsBlock() {
   const difyParams = useDifyParams();
   if (!difyParams?.suggested_questions?.length) return null;
   return (
-    <div className="px-4 py-1">
-      <OpenerSuggestions suggestions={difyParams.suggested_questions} />
+    <div className="flex flex-wrap gap-2 px-4 py-1">
+      {difyParams.suggested_questions.map((suggestion, i) => (
+        <ThreadPrimitive.Suggestion
+          key={i}
+          prompt={suggestion}
+          autoSend
+          className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors cursor-pointer"
+        >
+          {suggestion}
+        </ThreadPrimitive.Suggestion>
+      ))}
     </div>
   );
 }
