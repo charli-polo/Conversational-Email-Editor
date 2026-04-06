@@ -111,6 +111,21 @@ Plans:
 
 **Verification:** User sees opening statement in new threads with clickable suggestion chips. Like/dislike always visible on assistant messages with persistence. Copy/regenerate/export on hover. Collapsible reasoning with tool badges. File upload via paperclip and drag-and-drop. STT via mic button. All features gated by Dify /parameters config.
 
+## Phase 6: Chat UI Rewrite
+
+**Goal:** Rewrite chat UI architecture to useLocalRuntime with Dify ChatModelAdapter, matching reference app UX exactly. Save-on-demand conversation persistence. Fix broken opener, suggestions, actions, feedback, and reasoning display.
+**Requirements:** UX-01, UX-02, UX-03, UX-04, UX-06, UX-07
+**Depends on:** Phase 4, Phase 5 (partial — file upload kept, STT/export dropped)
+**Plans:** 4 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Runtime adapter fixes: SSE normalization, reasoning parts, feedback wiring, attachment data parts, Dify rename proxy
+- [ ] 06-02-PLAN.md — Save flow: Dify auto-title, toast, button states, auto-persist, New conversation, resume improvements
+- [ ] 06-03-PLAN.md — Thread UI: feedback buttons, collapsible reasoning, suggestion pattern, attachment component
+- [ ] 06-04-PLAN.md — End-to-end human verification of all Phase 6 features
+
+**Verification:** Chat works end-to-end: opener appears, suggestions send messages, 3-dot thinking shows during streaming, copy/regenerate on assistant messages, feedback persists, reasoning collapses, Save persists conversation, /c/{id} resumes it.
+
 ---
 *Roadmap created: 2026-03-25*
-*Updated: 2026-04-05 — Phase 5 planned (5 plans in 4 waves)*
+*Updated: 2026-04-06 — Phase 6 planned (4 plans in 3 waves)*
