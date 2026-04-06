@@ -4,7 +4,7 @@ import { createContext, useContext, useRef, useState, useEffect } from 'react';
 import { AssistantRuntimeProvider, useLocalRuntime } from '@assistant-ui/react';
 import type { ChatModelAdapter, ChatModelRunOptions } from '@assistant-ui/react';
 import { basePath } from '@/lib/base-path';
-import { createDifyAttachmentAdapter } from '@/lib/dify/adapters';
+import { createDifyAttachmentAdapter, createDifyFeedbackAdapter } from '@/lib/dify/adapters';
 
 // ---------------------------------------------------------------------------
 // Dify params context (opener, suggested questions, file upload config)
@@ -35,12 +35,20 @@ export const ConversationIdContext = createContext<React.MutableRefObject<string
 export function useConversationId() { return useContext(ConversationIdContext); }
 
 // ---------------------------------------------------------------------------
+// Saved thread ID context (exposed so feedback adapter can resolve thread)
+// ---------------------------------------------------------------------------
+
+export const SavedThreadIdContext = createContext<React.MutableRefObject<string>>({ current: '' });
+export function useSavedThreadId() { return useContext(SavedThreadIdContext); }
+
+// ---------------------------------------------------------------------------
 // Dify ChatModelAdapter — async generator, framework manages messages
 // ---------------------------------------------------------------------------
 
 function createDifyChatAdapter(
   conversationIdRef: React.MutableRefObject<string>,
   onBriefContentRef: React.MutableRefObject<((content: string) => void) | undefined>,
+  savedThreadIdRef: React.MutableRefObject<string>,
 ): ChatModelAdapter {
   return {
     async *run({ messages, abortSignal }: ChatModelRunOptions) {
@@ -50,17 +58,20 @@ function createDifyChatAdapter(
         .map((p) => p.text)
         .join('') ?? '';
 
-      // Extract Dify upload_file_ids from attachments
+      // Extract Dify upload_file_ids from attachment data content parts
       const files: Array<{ type: 'document' | 'image'; transfer_method: 'local_file'; upload_file_id: string }> = [];
       if (lastUser?.attachments) {
         for (const att of lastUser.attachments) {
-          // The DifyAttachmentAdapter stores the upload_file_id in the attachment id
-          if (att.id) {
+          const dataPart = att.content?.find(
+            (p): p is { type: 'data'; name: string; data: { upload_file_id: string } } =>
+              p.type === 'data' && 'name' in p && (p as { name?: string }).name === 'dify-file',
+          );
+          if (dataPart) {
             const isImage = att.type === 'image';
             files.push({
               type: isImage ? 'image' : 'document',
               transfer_method: 'local_file',
-              upload_file_id: att.id,
+              upload_file_id: dataPart.data.upload_file_id,
             });
           }
         }
@@ -72,6 +83,7 @@ function createDifyChatAdapter(
         body: JSON.stringify({
           message: query,
           conversation_id: conversationIdRef.current,
+          ...(savedThreadIdRef.current ? { threadId: savedThreadIdRef.current } : {}),
           ...(files.length > 0 ? { files } : {}),
         }),
         signal: abortSignal,
@@ -86,6 +98,9 @@ function createDifyChatAdapter(
       const decoder = new TextDecoder();
       let buffer = '';
       let rawText = '';
+      let reasoningText = '';
+      const toolBadges: string[] = [];
+      let difyMessageId = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -100,7 +115,34 @@ function createDifyChatAdapter(
           try {
             const data = JSON.parse(line.slice(6));
 
-            if (data.event === 'agent_thought' || data.event === 'agent_message' || data.event === 'message') {
+            if (data.event === 'agent_thought') {
+              if (data.thought) reasoningText += data.thought;
+              if (data.tool && !toolBadges.includes(data.tool)) toolBadges.push(data.tool);
+              if (data.message_id) difyMessageId = data.message_id;
+
+              // Compute display text for intermediate yield
+              let displayText = rawText;
+              const briefMatch = rawText.match(/<Brief>([\s\S]*?)(<\/Brief>|$)/);
+              if (briefMatch) {
+                const beforeBrief = rawText.substring(0, rawText.indexOf('<Brief>')).trim();
+                const afterBrief = briefMatch[2] === '</Brief>'
+                  ? rawText.substring(rawText.indexOf('</Brief>') + '</Brief>'.length).trim()
+                  : '';
+                displayText = [beforeBrief, afterBrief].filter(Boolean).join('\n');
+                displayText = displayText.replace('[BRIEF_COMPLETE]', '').trim();
+              }
+
+              yield {
+                content: [
+                  ...(reasoningText ? [{ type: 'reasoning' as const, text: reasoningText }] : []),
+                  { type: 'text' as const, text: displayText },
+                ],
+              };
+              continue;
+            }
+
+            if (data.event === 'agent_message' || data.event === 'message') {
+              if (data.message_id) difyMessageId = data.message_id;
               if (data.answer) {
                 rawText += data.answer;
 
@@ -118,7 +160,12 @@ function createDifyChatAdapter(
                   onBriefContentRef.current?.(briefInner.trim());
                 }
 
-                yield { content: [{ type: 'text' as const, text: displayText }] };
+                yield {
+                  content: [
+                    ...(reasoningText ? [{ type: 'reasoning' as const, text: reasoningText }] : []),
+                    { type: 'text' as const, text: displayText },
+                  ],
+                };
               }
 
               if (!conversationIdRef.current && data.conversation_id) {
@@ -139,6 +186,31 @@ function createDifyChatAdapter(
           }
         }
       }
+
+      // Final yield with metadata for feedback adapter
+      let finalDisplayText = rawText;
+      const finalBriefMatch = rawText.match(/<Brief>([\s\S]*?)(<\/Brief>|$)/);
+      if (finalBriefMatch) {
+        const beforeBrief = rawText.substring(0, rawText.indexOf('<Brief>')).trim();
+        const afterBrief = finalBriefMatch[2] === '</Brief>'
+          ? rawText.substring(rawText.indexOf('</Brief>') + '</Brief>'.length).trim()
+          : '';
+        finalDisplayText = [beforeBrief, afterBrief].filter(Boolean).join('\n');
+        finalDisplayText = finalDisplayText.replace('[BRIEF_COMPLETE]', '').trim();
+      }
+
+      yield {
+        content: [
+          ...(reasoningText ? [{ type: 'reasoning' as const, text: reasoningText }] : []),
+          { type: 'text' as const, text: finalDisplayText },
+        ],
+        metadata: {
+          custom: {
+            difyMessageId,
+            toolBadges,
+          },
+        },
+      };
     },
   };
 }
@@ -156,6 +228,7 @@ interface BriefRuntimeProviderProps {
 export function BriefRuntimeProvider({ children, onBriefContent, initialConversationId }: BriefRuntimeProviderProps) {
   const [params, setParams] = useState<DifyParams | null>(null);
   const conversationIdRef = useRef(initialConversationId ?? '');
+  const savedThreadIdRef = useRef('');
   const onBriefContentRef = useRef(onBriefContent);
   onBriefContentRef.current = onBriefContent;
 
@@ -167,21 +240,25 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialConversa
       .catch(() => {});
   }, []);
 
-  const adapter = useRef(createDifyChatAdapter(conversationIdRef, onBriefContentRef));
+  const adapter = useRef(createDifyChatAdapter(conversationIdRef, onBriefContentRef, savedThreadIdRef));
   const attachmentAdapter = useRef(createDifyAttachmentAdapter());
+  const feedbackAdapter = useRef(createDifyFeedbackAdapter(() => savedThreadIdRef.current));
 
   const runtime = useLocalRuntime(adapter.current, {
     adapters: {
       attachments: attachmentAdapter.current,
+      feedback: feedbackAdapter.current,
     },
   });
 
   return (
     <DifyParamsContext.Provider value={params}>
       <ConversationIdContext.Provider value={conversationIdRef}>
-        <AssistantRuntimeProvider runtime={runtime}>
-          {children}
-        </AssistantRuntimeProvider>
+        <SavedThreadIdContext.Provider value={savedThreadIdRef}>
+          <AssistantRuntimeProvider runtime={runtime}>
+            {children}
+          </AssistantRuntimeProvider>
+        </SavedThreadIdContext.Provider>
       </ConversationIdContext.Provider>
     </DifyParamsContext.Provider>
   );
