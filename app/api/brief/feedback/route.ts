@@ -14,29 +14,33 @@ export async function POST(req: Request) {
       rating: 'like' | 'dislike';
     };
 
-    if (!messageId || !threadId || !rating) {
+    if (!messageId || !rating) {
       return NextResponse.json(
-        { error: 'messageId, threadId, and rating are required' },
+        { error: 'messageId and rating are required' },
         { status: 400 }
       );
     }
 
-    // Persist rating locally in SQLite
-    await db.update(messages).set({ rating }).where(eq(messages.id, messageId));
+    // Persist rating locally in SQLite (only if thread exists)
+    if (threadId) {
+      await db.update(messages).set({ rating }).where(eq(messages.id, messageId));
+    }
 
     // If we have a Dify message ID, also submit feedback to Dify
     if (difyMessageId) {
-      // Resolve agent config from thread's linked agent
+      // Resolve agent config from thread's linked agent (if saved)
       let agentConfig = await getActiveAgentConfig();
-      const thread = await db.query.conversations.findFirst({
-        where: eq(conversations.id, threadId),
-      });
-      if (thread?.agentId) {
-        const agent = await db.query.agents.findFirst({
-          where: eq(agents.id, thread.agentId),
+      if (threadId) {
+        const thread = await db.query.conversations.findFirst({
+          where: eq(conversations.id, threadId),
         });
-        if (agent) {
-          agentConfig = { apiKey: agent.apiKey, baseUrl: agent.baseUrl, difyUrl: agent.difyUrl };
+        if (thread?.agentId) {
+          const agent = await db.query.agents.findFirst({
+            where: eq(agents.id, thread.agentId),
+          });
+          if (agent) {
+            agentConfig = { apiKey: agent.apiKey, baseUrl: agent.baseUrl, difyUrl: agent.difyUrl };
+          }
         }
       }
 
