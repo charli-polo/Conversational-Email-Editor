@@ -119,7 +119,7 @@ Plans:
 **Plans:** 1/4 plans executed
 
 Plans:
-- [ ] 06-01-PLAN.md — Runtime adapter fixes: SSE normalization, reasoning parts, feedback wiring, attachment data parts, Dify rename proxy
+- [x] 06-01-PLAN.md — Runtime adapter fixes: SSE normalization, reasoning parts, feedback wiring, attachment data parts, Dify rename proxy
 - [x] 06-02-PLAN.md — Save flow: Dify auto-title, toast, button states, auto-persist, New conversation, resume improvements
 - [ ] 06-03-PLAN.md — Thread UI: feedback buttons, collapsible reasoning, suggestion pattern, attachment component
 - [ ] 06-04-PLAN.md — End-to-end human verification of all Phase 6 features
