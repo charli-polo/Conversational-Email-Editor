@@ -116,11 +116,11 @@ Plans:
 **Goal:** Rewrite chat UI architecture to useLocalRuntime with Dify ChatModelAdapter, matching reference app UX exactly. Save-on-demand conversation persistence. Fix broken opener, suggestions, actions, feedback, and reasoning display.
 **Requirements:** UX-01, UX-02, UX-03, UX-04, UX-06, UX-07
 **Depends on:** Phase 4, Phase 5 (partial — file upload kept, STT/export dropped)
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 - [ ] 06-01-PLAN.md — Runtime adapter fixes: SSE normalization, reasoning parts, feedback wiring, attachment data parts, Dify rename proxy
-- [ ] 06-02-PLAN.md — Save flow: Dify auto-title, toast, button states, auto-persist, New conversation, resume improvements
+- [x] 06-02-PLAN.md — Save flow: Dify auto-title, toast, button states, auto-persist, New conversation, resume improvements
 - [ ] 06-03-PLAN.md — Thread UI: feedback buttons, collapsible reasoning, suggestion pattern, attachment component
 - [ ] 06-04-PLAN.md — End-to-end human verification of all Phase 6 features
 
