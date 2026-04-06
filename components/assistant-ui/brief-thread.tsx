@@ -5,27 +5,33 @@ import {
   AuiIf,
   ComposerPrimitive,
   MessagePrimitive,
+  SuggestionPrimitive,
   ThreadPrimitive,
+  useAuiState,
   useMessage,
 } from '@assistant-ui/react';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   CheckIcon,
+  ChevronRightIcon,
   CopyIcon,
   RefreshCwIcon,
   SquareIcon,
-  Paperclip,
+  ThumbsUpIcon,
+  ThumbsDownIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { TooltipIconButton } from './tooltip-icon-button';
 import { MarkdownText } from './markdown-text';
+import { ComposerAddAttachment, ComposerAttachments, UserMessageAttachments } from './attachment';
 import { useDifyParams } from './brief-runtime-provider';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { basePath } from '@/lib/base-path';
+import { cn } from '@/lib/utils';
 import type { FC } from 'react';
-import { useAui } from '@assistant-ui/store';
 
 // ---------------------------------------------------------------------------
 // Thinking indicator (3 bouncing dots) — shown while assistant is working
@@ -52,6 +58,42 @@ const ThinkingText: FC = () => {
 };
 
 // ---------------------------------------------------------------------------
+// Collapsible reasoning section (D-14, D-15, UX-07)
+// ---------------------------------------------------------------------------
+
+const ReasoningSection: FC<{ text: string }> = ({ text }) => {
+  const [expanded, setExpanded] = useState(false);
+  const message = useMessage((m) => m);
+  const toolBadges = ((message.metadata?.custom as Record<string, unknown>)?.toolBadges as string[]) || [];
+
+  return (
+    <div className="my-2">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ChevronRightIcon className={cn("size-3.5 transition-transform", expanded && "rotate-90")} />
+        Show reasoning
+        {toolBadges.length > 0 && (
+          <span className="flex gap-1">
+            {toolBadges.map((tool, i) => (
+              <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                {tool}
+              </Badge>
+            ))}
+          </span>
+        )}
+      </button>
+      {expanded && (
+        <div className="mt-2 pl-5 border-l-2 border-muted text-sm text-muted-foreground whitespace-pre-wrap">
+          {text}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Messages
 // ---------------------------------------------------------------------------
 
@@ -63,18 +105,47 @@ const AssistantMessage: FC = () => (
     <div className="wrap-break-word px-2 text-foreground leading-relaxed">
       <MessagePrimitive.Parts>
         {({ part }) => {
+          if (part.type === 'reasoning') return <ReasoningSection text={(part as { type: 'reasoning'; text: string }).text} />;
           if (part.type === 'text') return <ThinkingText />;
           return null;
         }}
       </MessagePrimitive.Parts>
     </div>
 
-    <div className="mt-1 ml-2 flex min-h-6 items-center">
+    <div className="mt-1 ml-2 flex min-h-6 items-center gap-2">
+      <AssistantFeedbackBar />
       <AssistantActionBar />
     </div>
   </MessagePrimitive.Root>
 );
 
+/** Feedback buttons (like/dislike) — always visible (D-12, UX-01) */
+const AssistantFeedbackBar: FC = () => (
+  <ActionBarPrimitive.Root className="-ml-1 flex gap-1 text-muted-foreground">
+    <ActionBarPrimitive.FeedbackPositive asChild>
+      <TooltipIconButton tooltip="Like">
+        <AuiIf condition={(s) => (s.message as Record<string, unknown> & { feedback?: { type: string } }).feedback?.type === 'positive'}>
+          <ThumbsUpIcon className="fill-current" />
+        </AuiIf>
+        <AuiIf condition={(s) => (s.message as Record<string, unknown> & { feedback?: { type: string } }).feedback?.type !== 'positive'}>
+          <ThumbsUpIcon />
+        </AuiIf>
+      </TooltipIconButton>
+    </ActionBarPrimitive.FeedbackPositive>
+    <ActionBarPrimitive.FeedbackNegative asChild>
+      <TooltipIconButton tooltip="Dislike">
+        <AuiIf condition={(s) => (s.message as Record<string, unknown> & { feedback?: { type: string } }).feedback?.type === 'negative'}>
+          <ThumbsDownIcon className="fill-current" />
+        </AuiIf>
+        <AuiIf condition={(s) => (s.message as Record<string, unknown> & { feedback?: { type: string } }).feedback?.type !== 'negative'}>
+          <ThumbsDownIcon />
+        </AuiIf>
+      </TooltipIconButton>
+    </ActionBarPrimitive.FeedbackNegative>
+  </ActionBarPrimitive.Root>
+);
+
+/** Copy + Regenerate — hidden while running, autohide not-last */
 const AssistantActionBar: FC = () => (
   <ActionBarPrimitive.Root
     hideWhenRunning
@@ -104,6 +175,7 @@ const UserMessage: FC = () => (
     className="fade-in slide-in-from-bottom-1 mx-auto grid w-full max-w-[var(--thread-max-width)] animate-in auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] content-start gap-y-2 px-2 py-3 duration-150 [&>*]:col-start-2"
     data-role="user"
   >
+    <UserMessageAttachments />
     <div className="relative col-start-2 min-w-0">
       <div className="peer rounded-2xl bg-muted px-4 py-2.5 text-foreground empty:hidden wrap-break-word">
         <MessagePrimitive.Parts />
@@ -113,7 +185,7 @@ const UserMessage: FC = () => (
 );
 
 const ThreadMessage: FC = () => {
-  const role = useMessage((m) => m.role);
+  const role = useAuiState((s) => s.message.role);
   if (role === 'user') return <UserMessage />;
   return <AssistantMessage />;
 };
@@ -153,15 +225,17 @@ function OpenerSuggestions() {
   const difyParams = useDifyParams();
   if (!difyParams?.suggested_questions?.length) return null;
   return (
-    <div className="grid w-full grid-cols-2 gap-2 pb-4">
+    <div className="grid w-full @md:grid-cols-2 gap-2 pb-4">
       {difyParams.suggested_questions.map((q, i) => (
         <ThreadPrimitive.Suggestion key={i} prompt={q} autoSend asChild>
-          <Button
-            variant="ghost"
-            className="h-auto w-full flex-wrap items-start justify-start gap-1 rounded-3xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
-          >
-            {q}
-          </Button>
+          <SuggestionPrimitive.Trigger send asChild>
+            <Button
+              variant="ghost"
+              className="h-auto w-full flex-wrap items-start justify-start gap-1 rounded-3xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
+            >
+              {q}
+            </Button>
+          </SuggestionPrimitive.Trigger>
         </ThreadPrimitive.Suggestion>
       ))}
     </div>
@@ -202,48 +276,6 @@ function DynamicSuggestions() {
 }
 
 // ---------------------------------------------------------------------------
-// File upload button (native label+input for reliable file dialog)
-// ---------------------------------------------------------------------------
-
-function FileUploadButton({ accept }: { accept: string }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const aui = useAui();
-
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    for (const file of files) {
-      aui.composer().addAttachment(file);
-    }
-    if (inputRef.current) inputRef.current.value = '';
-  }, [aui]);
-
-  return (
-    <>
-      <input
-        ref={inputRef}
-        id="file-upload-input"
-        type="file"
-        multiple
-        accept={accept}
-        onChange={handleChange}
-        className="sr-only"
-        tabIndex={-1}
-      />
-      <label
-        htmlFor="file-upload-input"
-        role="button"
-        tabIndex={0}
-        className="inline-flex items-center justify-center flex-shrink-0 size-8 rounded-full hover:bg-muted-foreground/15 transition-colors cursor-pointer"
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click(); }}
-      >
-        <Paperclip className="h-4 w-4" />
-      </label>
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Composer
 // ---------------------------------------------------------------------------
 
@@ -253,48 +285,51 @@ function Composer() {
 
   return (
     <ComposerPrimitive.Root className="relative flex w-full flex-col">
-      <div className="flex w-full flex-col gap-2 rounded-[var(--composer-radius)] border bg-background p-[var(--composer-padding)] transition-shadow focus-within:border-ring/75 focus-within:ring-2 focus-within:ring-ring/20">
-        <ComposerPrimitive.Input
-          placeholder="Send a message..."
-          className="max-h-32 min-h-10 w-full resize-none bg-transparent px-1.5 py-1 text-sm outline-none placeholder:text-muted-foreground/80"
-          rows={1}
-          autoFocus
-          aria-label="Message input"
-        />
-        <div className="relative flex items-center justify-between">
-          {fileUploadEnabled ? (
-            <FileUploadButton accept="image/*,.pdf" />
-          ) : (
-            <div />
-          )}
-          <AuiIf condition={(s) => !s.thread.isRunning}>
-            <ComposerPrimitive.Send asChild>
-              <TooltipIconButton
-                tooltip="Send message"
-                side="bottom"
-                variant="default"
-                size="icon"
-                className="size-8 rounded-full"
-                aria-label="Send message"
-              >
-                <ArrowUpIcon className="size-4" />
-              </TooltipIconButton>
-            </ComposerPrimitive.Send>
-          </AuiIf>
-          <AuiIf condition={(s) => s.thread.isRunning}>
-            <ComposerPrimitive.Cancel asChild>
-              <Button
-                variant="default"
-                size="icon"
-                className="size-8 rounded-full"
-                aria-label="Stop generating"
-              >
-                <SquareIcon className="size-3 fill-current" />
-              </Button>
-            </ComposerPrimitive.Cancel>
-          </AuiIf>
+      <ComposerPrimitive.AttachmentDropzone asChild>
+        <div className="flex w-full flex-col gap-2 rounded-[var(--composer-radius)] border bg-background p-[var(--composer-padding)] transition-shadow focus-within:border-ring/75 focus-within:ring-2 focus-within:ring-ring/20 data-[dragging=true]:border-ring data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50">
+          <ComposerAttachments />
+          <ComposerPrimitive.Input
+            placeholder="Send a message..."
+            className="max-h-32 min-h-10 w-full resize-none bg-transparent px-1.5 py-1 text-sm outline-none placeholder:text-muted-foreground/80"
+            rows={1}
+            autoFocus
+            aria-label="Message input"
+          />
+          <div className="relative flex items-center justify-between">
+            {fileUploadEnabled ? (
+              <ComposerAddAttachment />
+            ) : (
+              <div />
+            )}
+            <AuiIf condition={(s) => !s.thread.isRunning}>
+              <ComposerPrimitive.Send asChild>
+                <TooltipIconButton
+                  tooltip="Send message"
+                  side="bottom"
+                  variant="default"
+                  size="icon"
+                  className="size-8 rounded-full"
+                  aria-label="Send message"
+                >
+                  <ArrowUpIcon className="size-4" />
+                </TooltipIconButton>
+              </ComposerPrimitive.Send>
+            </AuiIf>
+            <AuiIf condition={(s) => s.thread.isRunning}>
+              <ComposerPrimitive.Cancel asChild>
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="size-8 rounded-full"
+                  aria-label="Stop generating"
+                >
+                  <SquareIcon className="size-3 fill-current" />
+                </Button>
+              </ComposerPrimitive.Cancel>
+            </AuiIf>
+          </div>
         </div>
-      </div>
+      </ComposerPrimitive.AttachmentDropzone>
     </ComposerPrimitive.Root>
   );
 }
