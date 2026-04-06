@@ -30,6 +30,7 @@ import { useDifyParams } from './brief-runtime-provider';
 import { useState, useEffect } from 'react';
 import { basePath } from '@/lib/base-path';
 import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
 import type { FC } from 'react';
 
 // ---------------------------------------------------------------------------
@@ -200,9 +201,9 @@ function ThreadWelcome() {
       <div className="flex w-full grow flex-col items-center justify-center">
         <div className="flex size-full flex-col justify-center px-4">
           {difyParams?.opening_statement ? (
-            <p className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-sm leading-relaxed duration-200">
-              {difyParams.opening_statement}
-            </p>
+            <div className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-sm leading-relaxed duration-200 prose prose-sm dark:prose-invert max-w-none">
+              <ReactMarkdown>{difyParams.opening_statement}</ReactMarkdown>
+            </div>
           ) : (
             <>
               <h1 className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-2xl duration-200">
