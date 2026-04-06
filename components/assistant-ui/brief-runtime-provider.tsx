@@ -171,6 +171,7 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
     runtimeHook: function RuntimeHook() {
       const [messages, setMessages] = useState<ThreadMessageLike[]>([]);
       const [isRunning, setIsRunning] = useState(false);
+      const isStreamingRef = useRef(false);
       const onBriefContentRef = useRef(onBriefContent);
       onBriefContentRef.current = onBriefContent;
 
@@ -196,10 +197,14 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
         }
         currentThreadIdRef.current = remoteId;
 
-        // Skip fetch if we just initialized this thread — it has no messages yet
+        // Skip fetch if we just initialized this thread — it has no messages yet.
+        // Don't reset messages if onNew is already streaming (the user message
+        // and partial assistant response are already in state).
         if (justInitializedThreadRef.current === remoteId) {
           justInitializedThreadRef.current = null;
-          setMessages([]);
+          if (!isStreamingRef.current) {
+            setMessages([]);
+          }
           return;
         }
 
@@ -252,10 +257,20 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
             upload_file_id: a.id,
           })) || [];
 
-        setMessages((prev) => [
-          ...prev,
-          { role: 'user' as const, content: [{ type: 'text' as const, text }] },
-        ]);
+        // Store attachment filenames in metadata so they survive framework normalization
+        const attachmentNames = attachments
+          ?.map((a) => (a as Record<string, unknown>).name as string || 'attachment')
+          .filter(Boolean) || [];
+
+        const userMsg = {
+          role: 'user' as const,
+          content: [{ type: 'text' as const, text }],
+          ...(attachmentNames.length > 0 ? {
+            metadata: { custom: { attachmentNames } },
+          } : {}),
+        };
+        isStreamingRef.current = true;
+        setMessages((prev) => [...prev, userMsg]);
         setIsRunning(true);
 
         try {
@@ -444,6 +459,7 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
             ];
           });
         } finally {
+          isStreamingRef.current = false;
           setIsRunning(false);
         }
       }, []);
@@ -451,7 +467,10 @@ export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId
       // eslint-disable-next-line react-hooks/rules-of-hooks
       return useExternalStoreRuntime({
         messages,
-        setMessages: (msgs: readonly ThreadMessageLike[]) => setMessages([...msgs]),
+        setMessages: (msgs: readonly ThreadMessageLike[]) => {
+          if (isStreamingRef.current) return;
+          setMessages([...msgs]);
+        },
         isRunning,
         onNew,
         onReload: async () => {

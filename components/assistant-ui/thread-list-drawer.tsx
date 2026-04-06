@@ -27,26 +27,26 @@ function ThreadListItem({ onSelect }: { onSelect: () => void }) {
   };
 
   return (
-    <ThreadListItemPrimitive.Root className="group flex items-center">
+    <ThreadListItemPrimitive.Root className="group flex items-center overflow-hidden">
       <ThreadListItemPrimitive.Trigger
         onClick={handleSelect}
-        className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors rounded-md data-[active]:bg-accent data-[active]:font-medium"
+        className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors rounded-md data-[active]:bg-accent data-[active]:font-medium overflow-hidden"
       >
-        <div className="flex items-center gap-2">
-          <span className="truncate flex-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="truncate min-w-0 flex-1">
             <ThreadListItemPrimitive.Title fallback="New conversation" />
           </span>
-          {meta?.agentLabel && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 flex-shrink-0">
-              {meta.agentLabel}
-            </Badge>
-          )}
           <Check className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0 hidden group-data-[active]:block" />
         </div>
         {meta?.preview && (
-          <p className="text-xs text-muted-foreground truncate mt-0.5">
-            {meta.preview.length > 80 ? meta.preview.slice(0, 80) + '...' : meta.preview}
+          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+            {meta.preview}
           </p>
+        )}
+        {meta?.agentLabel && (
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 mt-1">
+            {meta.agentLabel}
+          </Badge>
         )}
       </ThreadListItemPrimitive.Trigger>
     </ThreadListItemPrimitive.Root>
@@ -80,7 +80,7 @@ export function ThreadListDrawer() {
           <History className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[300px] sm:w-[340px] p-0">
+      <SheetContent side="left" className="w-[40vw] min-w-[340px] max-w-[600px] p-0">
         <SheetHeader className="p-4 pb-2">
           <SheetTitle>Conversations</SheetTitle>
         </SheetHeader>

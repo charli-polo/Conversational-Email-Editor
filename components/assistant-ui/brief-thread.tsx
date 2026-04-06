@@ -6,13 +6,13 @@ import {
   MessagePrimitive,
 } from '@assistant-ui/react';
 import { useAuiState, useAui } from '@assistant-ui/store';
-import { ArrowUp, Paperclip, Mic, MicOff } from 'lucide-react';
+import { ArrowUp, Paperclip, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { basePath } from '@/lib/base-path';
 import Markdown from 'react-markdown';
-import { AssistantActionToolbar, UserActionToolbar } from './action-toolbar';
+// Action toolbar temporarily removed — will be re-implemented
 import { StreamingReasoningIndicator, ReasoningSection } from './reasoning-section';
 import { ComposerAttachmentPreview, MessageAttachmentDisplay } from './attachment-preview';
 import { DragDropOverlay } from './drag-drop-overlay';
@@ -106,8 +106,34 @@ function AssistantMessageContent() {
         <ReasoningSection reasoningParts={reasoningParts} />
       )}
 
-      {/* D-01/D-02/D-03: Action toolbar */}
-      <AssistantActionToolbar />
+      {/* Action toolbar removed — will be re-implemented */}
+    </>
+  );
+}
+
+function UserMessageContent() {
+  const message = useAuiState((s) => s.message);
+  const custom = (message?.metadata?.custom ?? {}) as Record<string, unknown>;
+  const attachmentNames = (custom.attachmentNames as string[]) || [];
+
+  return (
+    <>
+      <div className="text-sm whitespace-pre-wrap break-words">
+        <MessagePrimitive.Content />
+      </div>
+      {attachmentNames.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-1.5">
+          {attachmentNames.map((name, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-background/50 border border-border/50"
+            >
+              <FileText className="h-3 w-3 text-muted-foreground" />
+              <span className="max-w-[150px] truncate">{name}</span>
+            </span>
+          ))}
+        </div>
+      )}
     </>
   );
 }
@@ -118,11 +144,9 @@ function BriefMessage() {
       <MessagePrimitive.If user>
         <div className="flex flex-col items-end group">
           <div className="max-w-[90%] rounded-lg px-4 py-2 bg-muted text-foreground">
-            <div className="text-sm whitespace-pre-wrap break-words">
-              <MessagePrimitive.Content />
-            </div>
+            <UserMessageContent />
           </div>
-          <UserActionToolbar />
+          {/* User action toolbar removed — will be re-implemented */}
         </div>
       </MessagePrimitive.If>
       <MessagePrimitive.If assistant>
@@ -248,7 +272,6 @@ function FileUploadButton({ accept }: { accept: string }) {
 export function BriefThread() {
   const difyParams = useDifyParams();
   const fileUploadEnabled = difyParams?.file_upload?.enabled ?? difyParams?.file_upload?.image?.enabled ?? false;
-  const sttEnabled = difyParams?.speech_to_text?.enabled ?? false;
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -301,21 +324,7 @@ export function BriefThread() {
                   className="flex-1 border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 py-2 text-sm resize-none outline-none min-h-[24px] max-h-[72px] overflow-y-auto"
                 />
 
-                {/* Mic button -- right of input (D-18, D-19) */}
-                {sttEnabled && (
-                  <>
-                    <ComposerPrimitive.Dictate asChild>
-                      <Button size="icon" variant="ghost" className="flex-shrink-0 h-9 w-9 rounded-full disabled:hidden">
-                        <Mic className="h-4 w-4" />
-                      </Button>
-                    </ComposerPrimitive.Dictate>
-                    <ComposerPrimitive.StopDictation asChild>
-                      <Button size="icon" variant="ghost" className="flex-shrink-0 h-9 w-9 rounded-full bg-destructive/10 text-destructive animate-pulse ring-2 ring-destructive/30 disabled:hidden">
-                        <MicOff className="h-4 w-4" />
-                      </Button>
-                    </ComposerPrimitive.StopDictation>
-                  </>
-                )}
+                {/* Mic button -- hidden for now (D-18, D-19) */}
 
                 <ComposerPrimitive.Send asChild>
                   <Button
