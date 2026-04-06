@@ -5,7 +5,6 @@ import {
   AuiIf,
   ComposerPrimitive,
   MessagePrimitive,
-  SuggestionPrimitive,
   ThreadPrimitive,
   useAuiState,
   useMessage,
@@ -228,14 +227,12 @@ function OpenerSuggestions() {
     <div className="grid w-full @md:grid-cols-2 gap-2 pb-4">
       {difyParams.suggested_questions.map((q, i) => (
         <ThreadPrimitive.Suggestion key={i} prompt={q} autoSend asChild>
-          <SuggestionPrimitive.Trigger send asChild>
-            <Button
-              variant="ghost"
-              className="h-auto w-full flex-wrap items-start justify-start gap-1 rounded-3xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
-            >
-              {q}
-            </Button>
-          </SuggestionPrimitive.Trigger>
+          <Button
+            variant="ghost"
+            className="h-auto w-full flex-wrap items-start justify-start gap-1 rounded-3xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
+          >
+            {q}
+          </Button>
         </ThreadPrimitive.Suggestion>
       ))}
     </div>

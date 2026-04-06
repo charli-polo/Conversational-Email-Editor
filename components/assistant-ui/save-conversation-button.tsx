@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAssistantRuntime } from '@assistant-ui/react';
+import { useAssistantRuntime, useThread } from '@assistant-ui/react';
 import { Save, Check, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { basePath } from '@/lib/base-path';
@@ -112,7 +112,7 @@ export function SaveConversationButton() {
     window.location.href = basePath + '/';
   }, [savedThreadIdRef, conversationIdRef]);
 
-  const isEmpty = runtime.thread.getState().messages.length === 0;
+  const isEmpty = useThread((t) => t.messages.length === 0);
 
   return (
     <>
