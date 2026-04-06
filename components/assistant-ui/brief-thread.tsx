@@ -197,26 +197,26 @@ const ThreadMessage: FC = () => {
 function ThreadWelcome() {
   const difyParams = useDifyParams();
   return (
-    <div className="mx-auto my-auto flex w-full max-w-[var(--thread-max-width)] grow flex-col">
-      <div className="flex w-full grow flex-col items-center justify-center">
-        <div className="flex size-full flex-col justify-center px-4">
-          {difyParams?.opening_statement ? (
-            <div className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-sm leading-relaxed duration-200 prose prose-sm dark:prose-invert max-w-none">
-              <ReactMarkdown>{difyParams.opening_statement}</ReactMarkdown>
-            </div>
-          ) : (
-            <>
-              <h1 className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-2xl duration-200">
-                Hello there!
-              </h1>
-              <p className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-xl delay-75 duration-200">
-                What email would you like to create?
-              </p>
-            </>
-          )}
-        </div>
+    <div className="mx-auto flex w-full max-w-[var(--thread-max-width)] grow flex-col">
+      <div className="flex flex-col px-4 pt-2">
+        {difyParams?.opening_statement ? (
+          <div className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-sm leading-relaxed duration-200 prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown>{difyParams.opening_statement}</ReactMarkdown>
+          </div>
+        ) : (
+          <>
+            <h1 className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-2xl duration-200">
+              Hello there!
+            </h1>
+            <p className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-xl delay-75 duration-200">
+              What email would you like to create?
+            </p>
+          </>
+        )}
       </div>
       <OpenerSuggestions />
+      <div className="mt-auto" />
+      <DynamicSuggestions />
     </div>
   );
 }
