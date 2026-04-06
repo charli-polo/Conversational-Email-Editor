@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-06T18:41:13.351Z"
+last_updated: "2026-04-06T18:46:11.522Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 20
-  completed_plans: 16
+  completed_plans: 17
   percent: 90
 ---
 
@@ -76,6 +76,8 @@ Progress: [█████████░] 90%
 - [Phase 06]: ConversationPageInner pattern to use context hooks inside BriefRuntimeProvider
 - [Phase 06]: Yield final result with metadata instead of return (AsyncGenerator void constraint)
 - [Phase 06]: Refactored rename proxy route to use renameConversation client function
+- [Phase 06]: Two separate ActionBarPrimitive.Root instances: feedback always visible, copy/regenerate on hover with autohide
+- [Phase 06]: TooltipTrigger asChild pattern (not render=) for radix-ui compatibility in attachment component
 
 ## Accumulated Context
 

@@ -121,7 +121,7 @@ Plans:
 Plans:
 - [x] 06-01-PLAN.md — Runtime adapter fixes: SSE normalization, reasoning parts, feedback wiring, attachment data parts, Dify rename proxy
 - [x] 06-02-PLAN.md — Save flow: Dify auto-title, toast, button states, auto-persist, New conversation, resume improvements
-- [ ] 06-03-PLAN.md — Thread UI: feedback buttons, collapsible reasoning, suggestion pattern, attachment component
+- [x] 06-03-PLAN.md — Thread UI: feedback buttons, collapsible reasoning, suggestion pattern, attachment component
 - [ ] 06-04-PLAN.md — End-to-end human verification of all Phase 6 features
 
 **Verification:** Chat works end-to-end: opener appears, suggestions send messages, 3-dot thinking shows during streaming, copy/regenerate on assistant messages, feedback persists, reasoning collapses, Save persists conversation, /c/{id} resumes it.
