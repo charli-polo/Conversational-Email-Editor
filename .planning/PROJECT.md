@@ -2,28 +2,34 @@
 
 ## What This Is
 
-A conversational email editor that adds a brief-taking step before email editing. Users first chat with a Dify-powered AI agent to define their email brief, then transition to the existing email editing interface. Built as a Next.js app for Brevo.
+A conversational email editor with a two-step AI-assisted flow: users first chat with a Dify-powered agent to define their email brief (objectives, audience, tone), then transition to the email editing interface. Features full conversation persistence, configurable agents, feedback, file uploads, and rich chat UI. Built as a Next.js app for Brevo.
 
 ## Core Value
 
-Demonstrate a two-step conversational flow: brief collection via AI agent, then email editing — proving the UX pattern of progressive AI-assisted content creation.
+Two-step conversational flow: brief collection via AI agent, then email editing — proving the UX pattern of progressive AI-assisted content creation.
 
 ## Requirements
 
 ### Validated
 
-- [x] Email editing via conversational AI (GPT via LiteLLM proxy)
-- [x] Section-scoped editing with preview
-- [x] Streaming AI responses in chat panel
-- [x] AI-powered edit suggestions
+- ✓ Dify agent API integration with streaming SSE proxy — v1.0
+- ✓ Brief-taking chat page with two-panel layout — v1.0
+- ✓ Two-step flow: brief page → email editor — v1.0
+- ✓ assistant-ui v0.12 with useLocalRuntime + Dify ChatModelAdapter — v1.0
+- ✓ Settings panel (agent CRUD, test prompt management, active agent selection) — v1.0
+- ✓ SQLite conversation persistence with save-on-demand flow — v1.0
+- ✓ Conversation resume from /c/{id} with auto-persist — v1.0
+- ✓ Like/dislike feedback persisted to Dify API — v1.0
+- ✓ Conversation opener with markdown rendering — v1.0
+- ✓ Suggestion chips from Dify /parameters — v1.0
+- ✓ File upload with drag-and-drop and preview — v1.0
+- ✓ Speech-to-text via Dify audio endpoint — v1.0
+- ✓ Collapsible reasoning display (tool-gated) — v1.0
+- ✓ 34 unit tests + E2E Playwright spec — v1.0
 
 ### Active
 
-- [x] Dify `/chat-messages` multi-turn conversation support — Validated in Phase 1
-- [ ] Brief-taking chat page with Dify agent integration
-- [ ] Two-step flow: brief page -> email editor page
-- [ ] Right panel placeholder during brief phase (empty state)
-- [ ] Transition button from brief to email editor
+(None — define in next milestone via `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -31,28 +37,35 @@ Demonstrate a two-step conversational flow: brief collection via AI agent, then 
 - Brief data injected into email editor context — future enhancement
 - Email generation from brief — not in scope
 - Dify agent configuration/customization — agent is pre-built
+- Mobile app — web-first approach
+- Feedback analytics dashboard — future enhancement
+- Offline mode — real-time is core value
 
 ## Context
 
-- Existing Next.js app with chat panel (left) + email preview (right) layout
-- Uses `@ai-sdk/openai` with LiteLLM proxy (`data-litellm-proxy.brevo.tech`) for email editing
-- Dify agent exposed at `https://api.dify.ai/v1` with key `app-Ey4TRfvs78MptXZFWyZNCokx`
-- Dify agent uses `/chat-messages` endpoint (multi-turn with `conversation_id`)
-- Current branch: `feat/litellm-refactor`
+Shipped v1.0 with 12,824 LOC TypeScript across 149 files.
+Tech stack: Next.js 15, React 19, assistant-ui v0.12, better-sqlite3 + Drizzle ORM, Dify API, Tailwind CSS.
+Deployed to Railway with SQLite persistent storage.
+Version: 0.2.0-rc.1
 
 ## Constraints
 
-- **Tech stack**: Next.js, React, TypeScript, Tailwind — must stay consistent with existing codebase
-- **Dify API key**: Must be server-side only (API route), never exposed to client
-- **Layout**: Reuse existing two-panel layout pattern (chat left, content right)
+- **Tech stack**: Next.js, React, TypeScript, Tailwind — must stay consistent
+- **Dify API key**: Server-side only (API route), never exposed to client
+- **Layout**: Two-panel layout (chat left, content right)
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Dify agent for brief | Pre-built agent, simple HTTP API, multi-turn support | Validated — Phase 1 complete |
-| Brief panel empty in v1 | Simplify first iteration, brief rendering deferred | -- Pending |
-| Separate page for brief vs editor | Clear step separation, simpler state management | -- Pending |
+| Dify agent for brief | Pre-built agent, simple HTTP API, multi-turn support | ✓ Good — works well |
+| useLocalRuntime over remote | Simpler, save-on-demand vs auto-persist, no broken ThreadList | ✓ Good — Phase 6 rewrite |
+| SQLite + Drizzle | Zero-config, Railway-compatible, type-safe | ✓ Good |
+| assistant-ui v0.12 primitives | Replaced 676 LOC custom chat, rich component library | ✓ Good |
+| Save-on-demand persistence | User controls when to save vs auto-saving everything | ✓ Good — cleaner UX |
+| Dify auto-generated titles | Let Dify name conversations based on content | ✓ Good |
+| Tool-gated reasoning display | agent_thought without tools just recaps answer | ✓ Good — avoids confusion |
+| Inline toast (no library) | Keep bundle light, matches no-new-deps approach | ✓ Good |
 
 ---
-*Last updated: 2026-03-25 after Phase 1 (Dify Agent API Integration) complete*
+*Last updated: 2026-04-06 after v1.0 milestone*
