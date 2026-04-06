@@ -95,6 +95,30 @@ export async function submitFeedback(
   });
 }
 
+export async function renameConversation(
+  conversationId: string,
+  options: { auto_generate?: boolean; name?: string },
+  user: string = 'default-user',
+  config?: AgentConfig
+): Promise<Response> {
+  const apiKey = config?.apiKey || DIFY_API_KEY;
+  const apiBase = config?.baseUrl || DIFY_API_BASE;
+  if (!apiKey) throw new Error('DIFY_API_KEY is not configured');
+
+  return fetch(`${apiBase}/v1/conversations/${conversationId}/name`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: options.name ?? '',
+      auto_generate: options.auto_generate ?? true,
+      user,
+    }),
+  });
+}
+
 export async function uploadFile(
   file: Blob,
   fileName: string,

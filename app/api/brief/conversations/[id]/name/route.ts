@@ -1,45 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getActiveAgentConfig } from '@/lib/dify/client';
-
-const DIFY_API_BASE = process.env.DIFY_API_BASE_URL || 'https://api.dify.ai';
-const DIFY_API_KEY = process.env.DIFY_API_KEY;
+import { NextResponse } from 'next/server';
+import { renameConversation, getActiveAgentConfig } from '@/lib/dify/client';
 
 export async function POST(
-  request: NextRequest,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params;
-  const body = await request.json();
+  try {
+    const { id: conversationId } = await params;
+    const body = await req.json().catch(() => ({}));
 
-  const config = await getActiveAgentConfig();
-  const apiKey = config?.apiKey || DIFY_API_KEY;
-  const apiBase = config?.baseUrl || DIFY_API_BASE;
+    // Resolve agent config
+    const agentConfig = await getActiveAgentConfig();
 
-  if (!apiKey) {
-    return NextResponse.json({ error: 'DIFY_API_KEY not configured' }, { status: 500 });
-  }
+    const response = await renameConversation(
+      conversationId,
+      { auto_generate: body.auto_generate ?? true, name: body.name },
+      'default-user',
+      agentConfig ?? undefined,
+    );
 
-  const response = await fetch(`${apiBase}/v1/conversations/${id}/name`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      auto_generate: body.auto_generate ?? true,
-      name: body.name ?? '',
-      user: 'default-user',
-    }),
-  });
+    if (!response.ok) {
+      const errorText = await response.text();
+      return NextResponse.json(
+        { error: 'Failed to rename conversation', details: errorText },
+        { status: response.status },
+      );
+    }
 
-  if (!response.ok) {
-    const err = await response.text().catch(() => '');
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error) {
     return NextResponse.json(
-      { error: `Dify rename failed: ${response.status}`, details: err },
-      { status: response.status },
+      { error: 'Failed to rename conversation' },
+      { status: 500 },
     );
   }
-
-  const data = await response.json();
-  return NextResponse.json(data);
 }
