@@ -1,181 +1,255 @@
 'use client';
 
 import {
-  ThreadPrimitive,
+  ActionBarPrimitive,
+  AuiIf,
   ComposerPrimitive,
   MessagePrimitive,
+  ThreadPrimitive,
+  useAuiState,
+  useMessage,
 } from '@assistant-ui/react';
-import { useAuiState, useAui } from '@assistant-ui/store';
-import { ArrowUp, Paperclip, FileText } from 'lucide-react';
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  CopyIcon,
+  SquareIcon,
+  ThumbsUpIcon,
+  ThumbsDownIcon,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { basePath } from '@/lib/base-path';
-import Markdown from 'react-markdown';
-// Action toolbar temporarily removed — will be re-implemented
-import { StreamingReasoningIndicator, ReasoningSection } from './reasoning-section';
-import { ComposerAttachmentPreview, MessageAttachmentDisplay } from './attachment-preview';
-import { DragDropOverlay } from './drag-drop-overlay';
+import { TooltipIconButton } from './tooltip-icon-button';
+import { MarkdownText } from './markdown-text';
+import { ComposerAddAttachment, ComposerAttachments, UserMessageAttachments } from './attachment';
 import { useDifyParams } from './brief-runtime-provider';
+import { useState, useEffect } from 'react';
+import { basePath } from '@/lib/base-path';
+import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import type { FC } from 'react';
 
-/**
- * ThreadOpener -- D-05/D-06: Static opener rendered via ThreadPrimitive.Empty.
- * Not injected as a fake message (runtime reconciliation would wipe it).
- */
-function ThreadOpener() {
-  const difyParams = useDifyParams();
-  if (!difyParams?.opening_statement) return null;
+// ---------------------------------------------------------------------------
+// Thinking indicator (3 bouncing dots) — shown while assistant is working
+// ---------------------------------------------------------------------------
+
+const ThinkingIndicator: FC = () => (
+  <div className="flex items-center gap-1 py-1 text-muted-foreground">
+    <span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:0ms]" />
+    <span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:150ms]" />
+    <span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:300ms]" />
+  </div>
+);
+
+const ThinkingText: FC = () => {
+  const isEmpty = useMessage((m) =>
+    m.content
+      .filter((p) => p.type === 'text')
+      .every((p) => (p as { type: 'text'; text: string }).text === '')
+  );
+  const isRunning = useMessage((m) => m.status?.type === 'running');
+
+  if (isEmpty && isRunning) return <ThinkingIndicator />;
+  return <MarkdownText />;
+};
+
+// ---------------------------------------------------------------------------
+// Collapsible reasoning section (D-14, D-15, UX-07)
+// ---------------------------------------------------------------------------
+
+const ReasoningSection: FC<{ text: string }> = ({ text }) => {
+  const [expanded, setExpanded] = useState(false);
+  const message = useMessage((m) => m);
+  const toolBadges = ((message.metadata?.custom as Record<string, unknown>)?.toolBadges as string[]) || [];
 
   return (
-    <div className="flex flex-col items-start">
-      <div className="w-full text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
-        <Markdown>{difyParams.opening_statement}</Markdown>
+    <div className="my-2">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ChevronRightIcon className={cn("size-3.5 transition-transform", expanded && "rotate-90")} />
+        Show reasoning
+        {toolBadges.length > 0 && (
+          <span className="flex gap-1">
+            {toolBadges.map((tool, i) => (
+              <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                {tool}
+              </Badge>
+            ))}
+          </span>
+        )}
+      </button>
+      {expanded && (
+        <div className="mt-2 pl-5 border-l-2 border-muted text-sm text-muted-foreground whitespace-pre-wrap">
+          {text}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Messages
+// ---------------------------------------------------------------------------
+
+/** Only show reasoning section when tools were actually used (non-empty toolBadges).
+ *  Without tools, agent_thought just recaps the answer — showing it would be redundant. */
+const AssistantMessageContent: FC = () => {
+  const message = useMessage((m) => m);
+  const toolBadges = ((message.metadata?.custom as Record<string, unknown>)?.toolBadges as string[]) || [];
+  const hasToolUsage = toolBadges.length > 0;
+
+  return (
+    <MessagePrimitive.Parts>
+      {({ part }) => {
+        if (part.type === 'reasoning' && hasToolUsage) return <ReasoningSection text={(part as { type: 'reasoning'; text: string }).text} />;
+        if (part.type === 'reasoning') return null; // Skip redundant reasoning recap
+        if (part.type === 'text') return <ThinkingText />;
+        return null;
+      }}
+    </MessagePrimitive.Parts>
+  );
+};
+
+const AssistantMessage: FC = () => (
+  <MessagePrimitive.Root
+    className="fade-in slide-in-from-bottom-1 relative mx-auto w-full max-w-[var(--thread-max-width)] animate-in py-3 duration-150"
+    data-role="assistant"
+  >
+    <div className="wrap-break-word px-2 text-foreground leading-relaxed">
+      <AssistantMessageContent />
+    </div>
+
+    <div className="mt-1 ml-2 flex min-h-6 items-center gap-2">
+      <AssistantFeedbackBar />
+      <AssistantActionBar />
+    </div>
+  </MessagePrimitive.Root>
+);
+
+/** Feedback buttons (like/dislike) — always visible (D-12, UX-01) */
+const AssistantFeedbackBar: FC = () => (
+  <ActionBarPrimitive.Root className="-ml-1 flex gap-1 text-muted-foreground">
+    <ActionBarPrimitive.FeedbackPositive asChild>
+      <TooltipIconButton tooltip="Like">
+        <AuiIf condition={(s) => (s.message as Record<string, unknown> & { feedback?: { type: string } }).feedback?.type === 'positive'}>
+          <ThumbsUpIcon className="fill-current" />
+        </AuiIf>
+        <AuiIf condition={(s) => (s.message as Record<string, unknown> & { feedback?: { type: string } }).feedback?.type !== 'positive'}>
+          <ThumbsUpIcon />
+        </AuiIf>
+      </TooltipIconButton>
+    </ActionBarPrimitive.FeedbackPositive>
+    <ActionBarPrimitive.FeedbackNegative asChild>
+      <TooltipIconButton tooltip="Dislike">
+        <AuiIf condition={(s) => (s.message as Record<string, unknown> & { feedback?: { type: string } }).feedback?.type === 'negative'}>
+          <ThumbsDownIcon className="fill-current" />
+        </AuiIf>
+        <AuiIf condition={(s) => (s.message as Record<string, unknown> & { feedback?: { type: string } }).feedback?.type !== 'negative'}>
+          <ThumbsDownIcon />
+        </AuiIf>
+      </TooltipIconButton>
+    </ActionBarPrimitive.FeedbackNegative>
+  </ActionBarPrimitive.Root>
+);
+
+/** Copy — hidden while running, autohide not-last */
+const AssistantActionBar: FC = () => (
+  <ActionBarPrimitive.Root
+    hideWhenRunning
+    autohide="not-last"
+    className="-ml-1 flex gap-1 text-muted-foreground"
+  >
+    <ActionBarPrimitive.Copy asChild>
+      <TooltipIconButton tooltip="Copy">
+        <AuiIf condition={(s) => s.message.isCopied}>
+          <CheckIcon />
+        </AuiIf>
+        <AuiIf condition={(s) => !s.message.isCopied}>
+          <CopyIcon />
+        </AuiIf>
+      </TooltipIconButton>
+    </ActionBarPrimitive.Copy>
+  </ActionBarPrimitive.Root>
+);
+
+const UserMessage: FC = () => (
+  <MessagePrimitive.Root
+    className="fade-in slide-in-from-bottom-1 mx-auto grid w-full max-w-[var(--thread-max-width)] animate-in auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] content-start gap-y-2 px-2 py-3 duration-150 [&>*]:col-start-2"
+    data-role="user"
+  >
+    <UserMessageAttachments />
+    <div className="relative col-start-2 min-w-0">
+      <div className="peer rounded-2xl bg-muted px-4 py-2.5 text-foreground empty:hidden wrap-break-word">
+        <MessagePrimitive.Parts />
       </div>
+    </div>
+  </MessagePrimitive.Root>
+);
+
+const ThreadMessage: FC = () => {
+  const role = useAuiState((s) => s.message.role);
+  if (role === 'user') return <UserMessage />;
+  return <AssistantMessage />;
+};
+
+// ---------------------------------------------------------------------------
+// Welcome / Opener
+// ---------------------------------------------------------------------------
+
+function ThreadWelcome() {
+  const difyParams = useDifyParams();
+  return (
+    <div className="mx-auto flex w-full max-w-[var(--thread-max-width)] grow flex-col">
+      <div className="flex flex-col px-4 pt-2">
+        {difyParams?.opening_statement ? (
+          <div className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-sm leading-relaxed duration-200 prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown>{difyParams.opening_statement}</ReactMarkdown>
+          </div>
+        ) : (
+          <>
+            <h1 className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both font-semibold text-2xl duration-200">
+              Hello there!
+            </h1>
+            <p className="fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-muted-foreground text-xl delay-75 duration-200">
+              What email would you like to create?
+            </p>
+          </>
+        )}
+      </div>
+      <OpenerSuggestions />
+      <div className="mt-auto" />
+      <DynamicSuggestions />
     </div>
   );
 }
 
-/**
- * AssistantMessageContent -- Reads message state via useAuiState to conditionally
- * render streaming reasoning (D-14/D-16), post-response reasoning (D-17),
- * attachment display (D-12), and action toolbar.
- */
-function AssistantMessageContent() {
-  const message = useAuiState((s) => s.message);
-
-  const custom = (message?.metadata?.custom ?? {}) as Record<string, unknown>;
-  const isStreamingReasoning = custom.isStreamingReasoning === true;
-  const streamingTools = (custom.streamingTools as string[]) || [];
-
-  // Extract reasoning parts from content
-  const content = message?.content;
-  const reasoningParts = Array.isArray(content)
-    ? content
-        .filter((p) => p.type === 'reasoning')
-        .map((p) => ({ text: (p as { text: string }).text }))
-    : [];
-
-  const reasoningText = reasoningParts.map((r) => r.text).join('\n\n');
-
-  // Check if message is still streaming
-  const isRunning = message?.status?.type === 'running';
-
-  // Extract image/document attachment parts from content for D-12
-  const attachmentParts = Array.isArray(content)
-    ? content.filter((p) => p.type === 'image' || p.type === 'file')
-    : [];
-
-  return (
-    <>
-      <div className="w-full text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2">
-        <MessagePrimitive.Content
-          components={{
-            Text: ({ text }) => <Markdown>{text}</Markdown>,
-          }}
-        />
-      </div>
-
-      {/* D-12: Render image/document attachments inline in assistant messages */}
-      {attachmentParts.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          {attachmentParts.map((part, i: number) => (
-            <MessageAttachmentDisplay
-              key={i}
-              type={part.type === 'image' ? 'image' : 'document'}
-              name={(part as Record<string, unknown>).filename as string || 'attachment'}
-              url={
-                part.type === 'image'
-                  ? (part as Record<string, unknown>).image as string | undefined
-                  : undefined
-              }
-            />
-          ))}
-        </div>
-      )}
-
-      {/* D-14/D-16: Streaming reasoning indicator -- dots + timer while agent is thinking */}
-      {isStreamingReasoning && isRunning && (
-        <StreamingReasoningIndicator
-          tools={streamingTools}
-          reasoningText={reasoningText}
-        />
-      )}
-
-      {/* D-17: Post-response collapsible reasoning -- only when streaming is done and reasoning exists */}
-      {!isStreamingReasoning && !isRunning && reasoningParts.length > 0 && (
-        <ReasoningSection reasoningParts={reasoningParts} />
-      )}
-
-      {/* Action toolbar removed — will be re-implemented */}
-    </>
-  );
-}
-
-function UserMessageContent() {
-  const message = useAuiState((s) => s.message);
-  const custom = (message?.metadata?.custom ?? {}) as Record<string, unknown>;
-  const attachmentNames = (custom.attachmentNames as string[]) || [];
-
-  return (
-    <>
-      <div className="text-sm whitespace-pre-wrap break-words">
-        <MessagePrimitive.Content />
-      </div>
-      {attachmentNames.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-1.5">
-          {attachmentNames.map((name, i) => (
-            <span
-              key={i}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-background/50 border border-border/50"
-            >
-              <FileText className="h-3 w-3 text-muted-foreground" />
-              <span className="max-w-[150px] truncate">{name}</span>
-            </span>
-          ))}
-        </div>
-      )}
-    </>
-  );
-}
-
-function BriefMessage() {
-  return (
-    <MessagePrimitive.Root>
-      <MessagePrimitive.If user>
-        <div className="flex flex-col items-end group">
-          <div className="max-w-[90%] rounded-lg px-4 py-2 bg-muted text-foreground">
-            <UserMessageContent />
-          </div>
-          {/* User action toolbar removed — will be re-implemented */}
-        </div>
-      </MessagePrimitive.If>
-      <MessagePrimitive.If assistant>
-        <div className="flex flex-col items-start group">
-          <AssistantMessageContent />
-        </div>
-      </MessagePrimitive.If>
-    </MessagePrimitive.Root>
-  );
-}
-
-function OpenerSuggestionsBlock() {
+function OpenerSuggestions() {
   const difyParams = useDifyParams();
   if (!difyParams?.suggested_questions?.length) return null;
   return (
-    <div className="flex flex-wrap gap-2 px-4 py-1">
-      {difyParams.suggested_questions.map((suggestion, i) => (
-        <ThreadPrimitive.Suggestion
-          key={i}
-          prompt={suggestion}
-          autoSend
-          className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors cursor-pointer"
-        >
-          {suggestion}
+    <div className="grid w-full @md:grid-cols-2 gap-2 pb-4">
+      {difyParams.suggested_questions.map((q, i) => (
+        <ThreadPrimitive.Suggestion key={i} prompt={q} autoSend asChild>
+          <Button
+            variant="ghost"
+            className="h-auto w-full flex-wrap items-start justify-start gap-1 rounded-3xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:bg-muted"
+          >
+            {q}
+          </Button>
         </ThreadPrimitive.Suggestion>
       ))}
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Dynamic test prompt suggestions (shown on empty thread below opener)
+// ---------------------------------------------------------------------------
 
 function DynamicSuggestions() {
   const [prompts, setPrompts] = useState<Array<{ id: string; name: string; text: string; autoSend: boolean }>>([]);
@@ -187,26 +261,7 @@ function DynamicSuggestions() {
       .catch(() => {});
   }, []);
 
-  if (prompts.length === 0) {
-    return (
-      <div className="flex flex-wrap gap-2 px-4 py-2">
-        <ThreadPrimitive.Suggestion
-          prompt="Create a product launch email"
-          autoSend
-          className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors text-foreground cursor-pointer"
-        >
-          Create a product launch email
-        </ThreadPrimitive.Suggestion>
-        <ThreadPrimitive.Suggestion
-          prompt="Write a newsletter update"
-          autoSend
-          className="px-3 py-1.5 text-xs rounded-full border border-border bg-background hover:bg-muted transition-colors text-foreground cursor-pointer"
-        >
-          Write a newsletter update
-        </ThreadPrimitive.Suggestion>
-      </div>
-    );
-  }
+  if (prompts.length === 0) return null;
 
   return (
     <div className="flex flex-wrap gap-2 px-4 py-2">
@@ -225,121 +280,113 @@ function DynamicSuggestions() {
   );
 }
 
-/**
- * FileUploadButton -- Native label+input pattern for reliable file dialog.
- * ComposerPrimitive.AddAttachment uses programmatic input.click() which
- * some browsers block. This uses a <label> wrapping a hidden <input> instead.
- */
-function FileUploadButton({ accept }: { accept: string }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const aui = useAui();
+// ---------------------------------------------------------------------------
+// Composer
+// ---------------------------------------------------------------------------
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    for (const file of files) {
-      aui.composer().addAttachment(file);
-    }
-    // Reset so the same file can be selected again
-    if (inputRef.current) inputRef.current.value = '';
-  }, [aui]);
-
-  return (
-    <>
-      <input
-        ref={inputRef}
-        id="file-upload-input"
-        type="file"
-        multiple
-        accept={accept}
-        onChange={handleChange}
-        className="sr-only"
-        tabIndex={-1}
-      />
-      <label
-        htmlFor="file-upload-input"
-        role="button"
-        tabIndex={0}
-        className="inline-flex items-center justify-center flex-shrink-0 h-9 w-9 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click(); }}
-      >
-        <Paperclip className="h-4 w-4" />
-      </label>
-    </>
-  );
-}
-
-export function BriefThread() {
+function Composer() {
   const difyParams = useDifyParams();
   const fileUploadEnabled = difyParams?.file_upload?.enabled ?? difyParams?.file_upload?.image?.enabled ?? false;
 
   return (
-    <TooltipProvider delayDuration={300}>
-    <div className="flex flex-col h-full min-h-0 bg-background border-r border-border">
-      {/* Header */}
-      <div className="p-4 border-b border-border flex-shrink-0">
-        <h2 className="text-lg font-semibold text-foreground">Chat</h2>
-      </div>
-
-      <DragDropOverlay>
-        <ThreadPrimitive.Root className="flex-1 flex flex-col min-h-0">
-          <ThreadPrimitive.Viewport className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4">
-            {/* D-05/D-06: Opener always at top of conversation */}
-            <ThreadOpener />
-            {/* D-06: Dify suggested questions, right below opener, hidden once messages exist */}
-            <ThreadPrimitive.Empty>
-              <OpenerSuggestionsBlock />
-            </ThreadPrimitive.Empty>
-            <ThreadPrimitive.Messages
-              components={{
-                Message: BriefMessage,
-              }}
-            />
-          </ThreadPrimitive.Viewport>
-
-          {/* Test prompt chips shown only on empty thread */}
-          <ThreadPrimitive.Empty>
-            <DynamicSuggestions />
-          </ThreadPrimitive.Empty>
-
-          <div className="p-4 border-t border-border">
-            <ComposerPrimitive.Root className="relative border border-border rounded-[24px] bg-background focus-within:ring-2 focus-within:ring-ring transition-shadow">
-              {/* Attachment previews above the input row (D-11) */}
-              <div className="flex flex-wrap gap-1 px-3 pt-2 empty:hidden">
-                <ComposerPrimitive.Attachments
-                  components={{
-                    Attachment: ComposerAttachmentPreview,
-                  }}
-                />
-              </div>
-
-              <div className="flex items-end gap-2 px-3 py-2">
-                {/* Paperclip button -- left of input (D-09) */}
-                {fileUploadEnabled && (
-                  <FileUploadButton accept="image/*,.pdf" />
-                )}
-
-                <ComposerPrimitive.Input
-                  placeholder="Tell me about the email you'd like to create..."
-                  className="flex-1 border-0 bg-transparent focus-visible:ring-0 shadow-none px-2 py-2 text-sm resize-none outline-none min-h-[24px] max-h-[72px] overflow-y-auto"
-                />
-
-                {/* Mic button -- hidden for now (D-18, D-19) */}
-
-                <ComposerPrimitive.Send asChild>
-                  <Button
-                    size="icon"
-                    className="flex-shrink-0 h-9 w-9 rounded-full bg-muted hover:bg-muted/80 text-foreground disabled:opacity-50"
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                  </Button>
-                </ComposerPrimitive.Send>
-              </div>
-            </ComposerPrimitive.Root>
+    <ComposerPrimitive.Root className="relative flex w-full flex-col">
+      <ComposerPrimitive.AttachmentDropzone asChild>
+        <div className="flex w-full flex-col gap-2 rounded-[var(--composer-radius)] border bg-background p-[var(--composer-padding)] transition-shadow focus-within:border-ring/75 focus-within:ring-2 focus-within:ring-ring/20 data-[dragging=true]:border-ring data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50">
+          <ComposerAttachments />
+          <ComposerPrimitive.Input
+            placeholder="Send a message..."
+            className="max-h-32 min-h-10 w-full resize-none bg-transparent px-1.5 py-1 text-sm outline-none placeholder:text-muted-foreground/80"
+            rows={1}
+            autoFocus
+            aria-label="Message input"
+          />
+          <div className="relative flex items-center justify-between">
+            {fileUploadEnabled ? (
+              <ComposerAddAttachment />
+            ) : (
+              <div />
+            )}
+            <AuiIf condition={(s) => !s.thread.isRunning}>
+              <ComposerPrimitive.Send asChild>
+                <TooltipIconButton
+                  tooltip="Send message"
+                  side="bottom"
+                  variant="default"
+                  size="icon"
+                  className="size-8 rounded-full"
+                  aria-label="Send message"
+                >
+                  <ArrowUpIcon className="size-4" />
+                </TooltipIconButton>
+              </ComposerPrimitive.Send>
+            </AuiIf>
+            <AuiIf condition={(s) => s.thread.isRunning}>
+              <ComposerPrimitive.Cancel asChild>
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="size-8 rounded-full"
+                  aria-label="Stop generating"
+                >
+                  <SquareIcon className="size-3 fill-current" />
+                </Button>
+              </ComposerPrimitive.Cancel>
+            </AuiIf>
           </div>
-        </ThreadPrimitive.Root>
-      </DragDropOverlay>
-    </div>
+        </div>
+      </ComposerPrimitive.AttachmentDropzone>
+    </ComposerPrimitive.Root>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Scroll to bottom
+// ---------------------------------------------------------------------------
+
+const ThreadScrollToBottom: FC = () => (
+  <ThreadPrimitive.ScrollToBottom asChild>
+    <TooltipIconButton
+      tooltip="Scroll to bottom"
+      variant="outline"
+      className="absolute -top-12 z-10 self-center rounded-full p-4 disabled:invisible dark:border-border dark:bg-background dark:hover:bg-accent"
+    >
+      <ArrowDownIcon />
+    </TooltipIconButton>
+  </ThreadPrimitive.ScrollToBottom>
+);
+
+// ---------------------------------------------------------------------------
+// Main thread export
+// ---------------------------------------------------------------------------
+
+export function BriefThread() {
+  return (
+    <TooltipProvider delayDuration={300}>
+      <ThreadPrimitive.Root
+        className="aui-root aui-thread-root flex h-full flex-col bg-background"
+        style={{
+          '--thread-max-width': '44rem',
+          '--composer-radius': '24px',
+          '--composer-padding': '10px',
+        } as React.CSSProperties}
+      >
+        <ThreadPrimitive.Viewport
+          className="relative flex flex-1 flex-col overflow-x-hidden overflow-y-scroll scroll-smooth px-4 pt-4"
+        >
+          <AuiIf condition={(s) => s.thread.isEmpty}>
+            <ThreadWelcome />
+          </AuiIf>
+
+          <ThreadPrimitive.Messages>
+            {() => <ThreadMessage />}
+          </ThreadPrimitive.Messages>
+
+          <ThreadPrimitive.ViewportFooter className="sticky bottom-0 mx-auto mt-auto flex w-full max-w-[var(--thread-max-width)] flex-col gap-4 overflow-visible rounded-t-[var(--composer-radius)] bg-background pb-4">
+            <ThreadScrollToBottom />
+            <Composer />
+          </ThreadPrimitive.ViewportFooter>
+        </ThreadPrimitive.Viewport>
+      </ThreadPrimitive.Root>
     </TooltipProvider>
   );
 }

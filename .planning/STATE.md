@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-05T22:05:26.335Z"
+last_updated: "2026-04-06T18:46:11.522Z"
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 2
-  total_plans: 16
-  completed_plans: 13
+  total_plans: 20
+  completed_plans: 17
   percent: 90
 ---
 
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Two-step AI conversational flow — brief then edit
-**Current focus:** Phase 05 — dify-chat-ux-enhancements (Plan 03 next)
+**Current focus:** Phase 06 — chat-ui-rewrite
 
 ## Milestone: v1.0 — Brief Flow MVP + Settings & Persistence
 
@@ -72,6 +72,12 @@ Progress: [█████████░] 90%
 - **05-03:** Used useAuiState from @assistant-ui/store (v0.12 API) instead of deprecated useMessage for message metadata access
 - **05-03:** Three separate ActionBarPrimitive.Root instances for hybrid visibility (feedback always, copy/export hover, regenerate last-only)
 - **05-03:** StreamingReasoningIndicator and ReasoningSection as distinct components for streaming vs post-response states
+- [Phase 06]: Inline toast with auto-dismiss for save confirmation, avoiding external toast library
+- [Phase 06]: ConversationPageInner pattern to use context hooks inside BriefRuntimeProvider
+- [Phase 06]: Yield final result with metadata instead of return (AsyncGenerator void constraint)
+- [Phase 06]: Refactored rename proxy route to use renameConversation client function
+- [Phase 06]: Two separate ActionBarPrimitive.Root instances: feedback always visible, copy/regenerate on hover with autohide
+- [Phase 06]: TooltipTrigger asChild pattern (not render=) for radix-ui compatibility in attachment component
 
 ## Accumulated Context
 

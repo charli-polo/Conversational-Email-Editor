@@ -1,28 +1,14 @@
 'use client';
 
-import {
-  AssistantRuntimeProvider,
-  useAssistantRuntime,
-  useExternalStoreRuntime,
-  useRemoteThreadListRuntime,
-  type RemoteThreadListAdapter,
-  type ThreadMessageLike,
-} from '@assistant-ui/react';
-import { useAuiState } from '@assistant-ui/store';
-import { createContext, useContext, useMemo, useRef, useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { createContext, useContext, useRef, useState, useEffect } from 'react';
+import { AssistantRuntimeProvider, useLocalRuntime } from '@assistant-ui/react';
+import type { ChatModelAdapter, ChatModelRunOptions } from '@assistant-ui/react';
 import { basePath } from '@/lib/base-path';
-import { createDifyFeedbackAdapter, createDifyAttachmentAdapter, createDifyDictationAdapter } from '@/lib/dify/adapters';
+import { createDifyAttachmentAdapter, createDifyFeedbackAdapter } from '@/lib/dify/adapters';
 
-export interface ThreadMeta {
-  preview: string | null;
-  agentLabel: string | null;
-}
-
-export const ThreadMetadataContext = createContext<Record<string, ThreadMeta>>({});
-export function useThreadMetadata() {
-  return useContext(ThreadMetadataContext);
-}
+// ---------------------------------------------------------------------------
+// Dify params context (opener, suggested questions, file upload config)
+// ---------------------------------------------------------------------------
 
 export interface DifyParams {
   opening_statement: string;
@@ -41,493 +27,239 @@ export interface DifyParams {
 export const DifyParamsContext = createContext<DifyParams | null>(null);
 export function useDifyParams() { return useContext(DifyParamsContext); }
 
+// ---------------------------------------------------------------------------
+// Conversation ID context (exposed so Save button can read it)
+// ---------------------------------------------------------------------------
+
+export const ConversationIdContext = createContext<React.MutableRefObject<string>>({ current: '' });
+export function useConversationId() { return useContext(ConversationIdContext); }
+
+// ---------------------------------------------------------------------------
+// Saved thread ID context (exposed so feedback adapter can resolve thread)
+// ---------------------------------------------------------------------------
+
+export const SavedThreadIdContext = createContext<React.MutableRefObject<string>>({ current: '' });
+export function useSavedThreadId() { return useContext(SavedThreadIdContext); }
+
+// ---------------------------------------------------------------------------
+// Dify ChatModelAdapter — async generator, framework manages messages
+// ---------------------------------------------------------------------------
+
+function createDifyChatAdapter(
+  conversationIdRef: React.MutableRefObject<string>,
+  onBriefContentRef: React.MutableRefObject<((content: string) => void) | undefined>,
+  savedThreadIdRef: React.MutableRefObject<string>,
+): ChatModelAdapter {
+  return {
+    async *run({ messages, abortSignal }: ChatModelRunOptions) {
+      const lastUser = [...messages].reverse().find((m) => m.role === 'user');
+      const query = lastUser?.content
+        .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+        .map((p) => p.text)
+        .join('') ?? '';
+
+      // Extract Dify upload_file_ids from attachment data content parts
+      const files: Array<{ type: 'document' | 'image'; transfer_method: 'local_file'; upload_file_id: string }> = [];
+      if (lastUser?.attachments) {
+        for (const att of lastUser.attachments) {
+          const dataPart = att.content?.find(
+            (p): p is { type: 'data'; name: string; data: { upload_file_id: string } } =>
+              p.type === 'data' && 'name' in p && (p as { name?: string }).name === 'dify-file',
+          );
+          if (dataPart) {
+            const isImage = att.type === 'image';
+            files.push({
+              type: isImage ? 'image' : 'document',
+              transfer_method: 'local_file',
+              upload_file_id: dataPart.data.upload_file_id,
+            });
+          }
+        }
+      }
+
+      const response = await fetch(`${basePath}/api/brief/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: query,
+          conversation_id: conversationIdRef.current,
+          ...(savedThreadIdRef.current ? { threadId: savedThreadIdRef.current } : {}),
+          ...(files.length > 0 ? { files } : {}),
+        }),
+        signal: abortSignal,
+      });
+
+      if (!response.ok) {
+        const err = await response.text().catch(() => '');
+        throw new Error(err || `HTTP ${response.status}`);
+      }
+
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let rawText = '';
+      let reasoningText = '';
+      const toolBadges: string[] = [];
+      let difyMessageId = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+
+            if (data.event === 'agent_thought') {
+              if (data.thought) reasoningText += data.thought;
+              if (data.tool && !toolBadges.includes(data.tool)) toolBadges.push(data.tool);
+              if (data.message_id) difyMessageId = data.message_id;
+
+              // Compute display text for intermediate yield
+              let displayText = rawText;
+              const briefMatch = rawText.match(/<Brief>([\s\S]*?)(<\/Brief>|$)/);
+              if (briefMatch) {
+                const beforeBrief = rawText.substring(0, rawText.indexOf('<Brief>')).trim();
+                const afterBrief = briefMatch[2] === '</Brief>'
+                  ? rawText.substring(rawText.indexOf('</Brief>') + '</Brief>'.length).trim()
+                  : '';
+                displayText = [beforeBrief, afterBrief].filter(Boolean).join('\n');
+                displayText = displayText.replace('[BRIEF_COMPLETE]', '').trim();
+              }
+
+              yield {
+                content: [
+                  ...(reasoningText ? [{ type: 'reasoning' as const, text: reasoningText }] : []),
+                  { type: 'text' as const, text: displayText },
+                ],
+              };
+              continue;
+            }
+
+            if (data.event === 'agent_message' || data.event === 'message') {
+              if (data.message_id) difyMessageId = data.message_id;
+              if (data.answer) {
+                rawText += data.answer;
+
+                // Extract <Brief> content if present
+                let displayText = rawText;
+                const briefMatch = rawText.match(/<Brief>([\s\S]*?)(<\/Brief>|$)/);
+                if (briefMatch) {
+                  const beforeBrief = rawText.substring(0, rawText.indexOf('<Brief>')).trim();
+                  const briefInner = briefMatch[1];
+                  const afterBrief = briefMatch[2] === '</Brief>'
+                    ? rawText.substring(rawText.indexOf('</Brief>') + '</Brief>'.length).trim()
+                    : '';
+                  displayText = [beforeBrief, afterBrief].filter(Boolean).join('\n');
+                  displayText = displayText.replace('[BRIEF_COMPLETE]', '').trim();
+                  onBriefContentRef.current?.(briefInner.trim());
+                }
+
+                yield {
+                  content: [
+                    ...(reasoningText ? [{ type: 'reasoning' as const, text: reasoningText }] : []),
+                    { type: 'text' as const, text: displayText },
+                  ],
+                };
+              }
+
+              if (!conversationIdRef.current && data.conversation_id) {
+                conversationIdRef.current = data.conversation_id;
+              }
+            }
+
+            if (data.event === 'done' && data.conversation_id) {
+              conversationIdRef.current = data.conversation_id;
+            }
+
+            if (data.event === 'error') {
+              throw new Error(data.message || 'Dify streaming error');
+            }
+          } catch (e) {
+            if (e instanceof SyntaxError) continue;
+            throw e;
+          }
+        }
+      }
+
+      // Final yield with metadata for feedback adapter
+      let finalDisplayText = rawText;
+      const finalBriefMatch = rawText.match(/<Brief>([\s\S]*?)(<\/Brief>|$)/);
+      if (finalBriefMatch) {
+        const beforeBrief = rawText.substring(0, rawText.indexOf('<Brief>')).trim();
+        const afterBrief = finalBriefMatch[2] === '</Brief>'
+          ? rawText.substring(rawText.indexOf('</Brief>') + '</Brief>'.length).trim()
+          : '';
+        finalDisplayText = [beforeBrief, afterBrief].filter(Boolean).join('\n');
+        finalDisplayText = finalDisplayText.replace('[BRIEF_COMPLETE]', '').trim();
+      }
+
+      yield {
+        content: [
+          ...(reasoningText ? [{ type: 'reasoning' as const, text: reasoningText }] : []),
+          { type: 'text' as const, text: finalDisplayText },
+        ],
+        metadata: {
+          custom: {
+            difyMessageId,
+            toolBadges,
+          },
+        },
+      };
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Provider
+// ---------------------------------------------------------------------------
+
 interface BriefRuntimeProviderProps {
   children: React.ReactNode;
   onBriefContent?: (content: string) => void;
-  initialThreadId?: string;
+  initialConversationId?: string;
 }
 
-interface DbMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  created_at: string;
-  dify_message_id?: string | null;
-  rating?: 'like' | 'dislike' | null;
-}
-
-export function BriefRuntimeProvider({ children, onBriefContent, initialThreadId }: BriefRuntimeProviderProps) {
-  const router = useRouter();
-  const routerRef = useRef(router);
-  routerRef.current = router;
-  const difyConversationIdRef = useRef<string>('');
-  const currentThreadIdRef = useRef<string>('');
-  const justInitializedThreadRef = useRef<string | null>(null);
-  const [threadMetadata, setThreadMetadata] = useState<Record<string, ThreadMeta>>({});
+export function BriefRuntimeProvider({ children, onBriefContent, initialConversationId }: BriefRuntimeProviderProps) {
   const [params, setParams] = useState<DifyParams | null>(null);
+  const conversationIdRef = useRef(initialConversationId ?? '');
+  const savedThreadIdRef = useRef('');
+  const onBriefContentRef = useRef(onBriefContent);
+  onBriefContentRef.current = onBriefContent;
 
-  // Fetch Dify parameters once on mount (opener, file_upload, speech_to_text)
+  // Fetch Dify parameters once on mount
   useEffect(() => {
     fetch(`${basePath}/api/brief/parameters`)
       .then(r => r.json())
-      .then(data => {
-        if (!data.error) setParams(data);
-      })
+      .then(data => { if (!data.error) setParams(data); })
       .catch(() => {});
   }, []);
 
-  const threadListAdapter: RemoteThreadListAdapter = useMemo(() => ({
-    async list() {
-      const res = await fetch(`${basePath}/api/threads`);
-      const data = await res.json();
+  const adapter = useRef(createDifyChatAdapter(conversationIdRef, onBriefContentRef, savedThreadIdRef));
+  const attachmentAdapter = useRef(createDifyAttachmentAdapter());
+  const feedbackAdapter = useRef(createDifyFeedbackAdapter(() => savedThreadIdRef.current));
 
-      // Build metadata map for drawer consumption
-      const meta: Record<string, ThreadMeta> = {};
-      const threads = data.threads.map((t: Record<string, unknown>) => {
-        const remoteId = t.id as string;
-        meta[remoteId] = {
-          preview: (t.preview as string) ?? null,
-          agentLabel: (t.agent_label as string) ?? null,
-        };
-        return {
-          remoteId,
-          status: t.is_archived ? ('archived' as const) : ('regular' as const),
-          title: (t.title as string) ?? undefined,
-        };
-      });
-      setThreadMetadata(meta);
-
-      return { threads };
+  const runtime = useLocalRuntime(adapter.current, {
+    adapters: {
+      attachments: attachmentAdapter.current,
+      feedback: feedbackAdapter.current,
     },
-    async initialize(localId: string) {
-      const res = await fetch(`${basePath}/api/threads`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ localId }),
-      });
-      const result = await res.json();
-      difyConversationIdRef.current = '';
-      currentThreadIdRef.current = result.id;
-      justInitializedThreadRef.current = result.id;
-      window.history.replaceState(null, '', `${basePath}/c/${result.id}`);
-      return { remoteId: result.id, externalId: undefined };
-    },
-    async rename(remoteId: string, title: string) {
-      await fetch(`${basePath}/api/threads/${remoteId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title }),
-      });
-    },
-    async archive(remoteId: string) {
-      await fetch(`${basePath}/api/threads/${remoteId}/archive`, { method: 'POST' });
-    },
-    async unarchive(remoteId: string) {
-      await fetch(`${basePath}/api/threads/${remoteId}/unarchive`, { method: 'POST' });
-    },
-    async delete(remoteId: string) {
-      await fetch(`${basePath}/api/threads/${remoteId}`, { method: 'DELETE' });
-    },
-    async fetch(remoteId: string) {
-      const res = await fetch(`${basePath}/api/threads/${remoteId}`);
-      const t = await res.json();
-      if (t.dify_conversation_id) {
-        difyConversationIdRef.current = t.dify_conversation_id;
-      } else {
-        difyConversationIdRef.current = '';
-      }
-      currentThreadIdRef.current = remoteId;
-      return {
-        remoteId: t.id as string,
-        status: t.is_archived ? ('archived' as const) : ('regular' as const),
-        title: (t.title as string) ?? undefined,
-      };
-    },
-    async generateTitle(remoteId: string, messages: readonly Record<string, unknown>[]) {
-      const firstUserMsg = messages.find((m) => m.role === 'user');
-      const content = firstUserMsg?.content;
-      let title = 'New conversation';
-      if (Array.isArray(content) && content.length > 0) {
-        const textPart = content[0] as Record<string, unknown>;
-        if (textPart?.text && typeof textPart.text === 'string') {
-          title = textPart.text.slice(0, 50);
-        }
-      }
-
-      await fetch(`${basePath}/api/threads/${remoteId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title }),
-      });
-
-      const { createAssistantStream } = await import('assistant-stream');
-      return createAssistantStream(async (controller) => {
-        controller.appendText(title);
-      });
-    },
-  }), []);
-
-  const runtime = useRemoteThreadListRuntime({
-    runtimeHook: function RuntimeHook() {
-      const [messages, setMessages] = useState<ThreadMessageLike[]>([]);
-      const [isRunning, setIsRunning] = useState(false);
-      const isStreamingRef = useRef(false);
-      const onBriefContentRef = useRef(onBriefContent);
-      onBriefContentRef.current = onBriefContent;
-
-      // Read the current thread's remoteId from assistant-ui store
-      // This updates reactively when the user switches threads
-      const remoteId = useAuiState((s) => s.threadListItem?.remoteId);
-
-      // Sync URL when thread changes
-      useEffect(() => {
-        if (remoteId) {
-          const expectedPath = `${basePath}/c/${remoteId}`;
-          if (window.location.pathname !== expectedPath) {
-            window.history.replaceState(null, '', expectedPath);
-          }
-        }
-      }, [remoteId]);
-
-      // Load persisted messages when remoteId changes (thread switch)
-      useEffect(() => {
-        if (!remoteId) {
-          setMessages([]);
-          return;
-        }
-        currentThreadIdRef.current = remoteId;
-
-        // Skip fetch if we just initialized this thread — it has no messages yet.
-        // Don't reset messages if onNew is already streaming (the user message
-        // and partial assistant response are already in state).
-        if (justInitializedThreadRef.current === remoteId) {
-          justInitializedThreadRef.current = null;
-          if (!isStreamingRef.current) {
-            setMessages([]);
-          }
-          return;
-        }
-
-        fetch(`${basePath}/api/threads/${remoteId}/messages`)
-          .then((r) => r.json())
-          .then((data) => {
-            if (data.messages?.length > 0) {
-              setMessages(
-                data.messages.map((m: DbMessage) => ({
-                  role: m.role as 'user' | 'assistant',
-                  content: [{ type: 'text' as const, text: m.content }],
-                  ...(m.dify_message_id || m.rating ? {
-                    metadata: {
-                      ...(m.rating ? {
-                        submittedFeedback: {
-                          type: m.rating === 'like' ? 'positive' : 'negative',
-                        },
-                      } : {}),
-                      custom: {
-                        ...(m.dify_message_id ? { difyMessageId: m.dify_message_id } : {}),
-                      },
-                    },
-                  } : {}),
-                }))
-              );
-            } else {
-              setMessages([]);
-            }
-          })
-          .catch(() => setMessages([]));
-      }, [remoteId]);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const onNew = useCallback(async (message: any) => {
-        const content = message.content;
-        const firstPart = Array.isArray(content) ? content[0] : undefined;
-        const text = firstPart && typeof firstPart === 'object' && 'type' in firstPart && firstPart.type === 'text' && 'text' in firstPart
-          ? (firstPart as { text: string }).text
-          : '';
-        if (!text) return;
-
-        // Extract file references from attachments (from AttachmentAdapter)
-        // The adapter stores the Dify upload_file_id as the attachment id
-        const attachments = message.attachments as Array<{ id: string; type?: string }> | undefined;
-        const files = attachments
-          ?.filter((a) => a.id)
-          .map((a) => ({
-            type: (a.type === 'image' ? 'image' : 'document') as 'image' | 'document',
-            transfer_method: 'local_file' as const,
-            upload_file_id: a.id,
-          })) || [];
-
-        // Store attachment filenames in metadata so they survive framework normalization
-        const attachmentNames = attachments
-          ?.map((a) => (a as Record<string, unknown>).name as string || 'attachment')
-          .filter(Boolean) || [];
-
-        const userMsg = {
-          role: 'user' as const,
-          content: [{ type: 'text' as const, text }],
-          ...(attachmentNames.length > 0 ? {
-            metadata: { custom: { attachmentNames } },
-          } : {}),
-        };
-        isStreamingRef.current = true;
-        setMessages((prev) => [...prev, userMsg]);
-        setIsRunning(true);
-
-        try {
-          const res = await fetch(`${basePath}/api/brief/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: text,
-              conversation_id: difyConversationIdRef.current,
-              threadId: currentThreadIdRef.current,
-              ...(files.length > 0 ? { files } : {}),
-            }),
-          });
-
-          if (!res.ok || !res.body) {
-            const errorBody = !res.body ? 'No response body' : await res.text().catch(() => '');
-            console.error('Chat API error:', res.status, errorBody);
-            setMessages((prev) => [
-              ...prev,
-              { role: 'assistant' as const, content: [{ type: 'text' as const, text: 'Something went wrong. Please try again.' }] },
-            ]);
-            return;
-          }
-
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder();
-          let fullContent = '';
-          let buffer = '';
-          const reasoningParts: Array<{ thought: string; tool: string }> = [];
-          let lastDifyMessageId = '';
-          let displayText = '';
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-
-            for (const line of lines) {
-              if (!line.startsWith('data: ')) continue;
-              try {
-                const data = JSON.parse(line.slice(6));
-
-                if (data.event === 'agent_thought') {
-                  if (data.thought) {
-                    reasoningParts.push({ thought: data.thought, tool: data.tool || '' });
-                  }
-                  if (data.message_id) lastDifyMessageId = data.message_id;
-                  // Update in-progress message with streaming reasoning metadata (D-14/D-16)
-                  setMessages((prev) => {
-                    const streamingContent = [
-                      ...reasoningParts.map(r => ({
-                        type: 'reasoning' as const,
-                        text: r.thought + (r.tool ? `\n[Tool: ${r.tool}]` : ''),
-                      })),
-                      { type: 'text' as const, text: displayText || '' },
-                    ];
-                    const streamingMetadata = {
-                      custom: {
-                        ...(lastDifyMessageId ? { difyMessageId: lastDifyMessageId } : {}),
-                        isStreamingReasoning: true,
-                        streamingTools: reasoningParts.filter(r => r.tool).map(r => r.tool),
-                      },
-                    };
-                    const lastMsg = prev[prev.length - 1];
-                    if (lastMsg?.role === 'assistant') {
-                      return [
-                        ...prev.slice(0, -1),
-                        { role: 'assistant' as const, content: streamingContent, metadata: streamingMetadata },
-                      ];
-                    }
-                    return [
-                      ...prev,
-                      { role: 'assistant' as const, content: streamingContent, metadata: streamingMetadata },
-                    ];
-                  });
-                  continue;
-                }
-
-                if (data.event === 'done') {
-                  if (data.conversation_id) {
-                    difyConversationIdRef.current = data.conversation_id;
-                  }
-                  if (data.message_id) lastDifyMessageId = data.message_id;
-                  continue;
-                }
-                if (data.event === 'error') {
-                  const errorMsg = data.message || 'Something went wrong. Please try again.';
-                  setMessages((prev) => {
-                    const lastMsg = prev[prev.length - 1];
-                    if (lastMsg?.role === 'assistant') {
-                      return [...prev.slice(0, -1), { role: 'assistant' as const, content: [{ type: 'text' as const, text: errorMsg }] }];
-                    }
-                    return [...prev, { role: 'assistant' as const, content: [{ type: 'text' as const, text: errorMsg }] }];
-                  });
-                  continue;
-                }
-
-                if (data.answer) {
-                  fullContent += data.answer;
-
-                  displayText = fullContent;
-                  const briefMatch = fullContent.match(/<Brief>([\s\S]*?)(<\/Brief>|$)/);
-                  if (briefMatch) {
-                    const beforeBrief = fullContent.substring(0, fullContent.indexOf('<Brief>')).trim();
-                    const briefInner = briefMatch[1];
-                    const afterBrief = briefMatch[2] === '</Brief>'
-                      ? fullContent.substring(fullContent.indexOf('</Brief>') + '</Brief>'.length).trim()
-                      : '';
-                    displayText = [beforeBrief, afterBrief].filter(Boolean).join('\n');
-                    displayText = displayText.replace('[BRIEF_COMPLETE]', '').trim();
-                    onBriefContentRef.current?.(briefInner.trim());
-                  }
-
-                  // Build content with reasoning parts if any
-                  const contentParts = [
-                    ...reasoningParts.map(r => ({
-                      type: 'reasoning' as const,
-                      text: r.thought + (r.tool ? `\n[Tool: ${r.tool}]` : ''),
-                    })),
-                    { type: 'text' as const, text: displayText || '...' },
-                  ];
-                  const streamMeta = reasoningParts.length > 0 ? {
-                    metadata: {
-                      custom: {
-                        ...(lastDifyMessageId ? { difyMessageId: lastDifyMessageId } : {}),
-                        isStreamingReasoning: true,
-                        streamingTools: reasoningParts.filter(r => r.tool).map(r => r.tool),
-                      },
-                    },
-                  } : {};
-
-                  setMessages((prev) => {
-                    const lastMsg = prev[prev.length - 1];
-                    if (lastMsg?.role === 'assistant') {
-                      return [
-                        ...prev.slice(0, -1),
-                        { role: 'assistant' as const, content: contentParts, ...streamMeta },
-                      ];
-                    }
-                    return [
-                      ...prev,
-                      { role: 'assistant' as const, content: contentParts, ...streamMeta },
-                    ];
-                  });
-
-                  if (data.conversation_id && !difyConversationIdRef.current) {
-                    difyConversationIdRef.current = data.conversation_id;
-                  }
-                }
-              } catch (e) {
-                if (e instanceof Error && e.message === 'Dify streaming error') throw e;
-              }
-            }
-          }
-
-          // Build final message content with reasoning parts but WITHOUT isStreamingReasoning
-          const finalContentParts = [
-            ...reasoningParts.map(r => ({
-              type: 'reasoning' as const,
-              text: r.thought + (r.tool ? `\n[Tool: ${r.tool}]` : ''),
-            })),
-            { type: 'text' as const, text: displayText || '...' },
-          ];
-          const finalMsgMetadata = {
-            custom: {
-              ...(lastDifyMessageId ? { difyMessageId: lastDifyMessageId } : {}),
-              // isStreamingReasoning deliberately ABSENT — streaming is complete.
-              // Plan 03 will show static ReasoningSection toggle instead of dots+timer.
-            },
-          };
-
-          setMessages((prev) => {
-            const lastMsg = prev[prev.length - 1];
-            if (lastMsg?.role === 'assistant') {
-              return [
-                ...prev.slice(0, -1),
-                { role: 'assistant' as const, content: finalContentParts, metadata: finalMsgMetadata },
-              ];
-            }
-            return [
-              ...prev,
-              { role: 'assistant' as const, content: finalContentParts, metadata: finalMsgMetadata },
-            ];
-          });
-        } finally {
-          isStreamingRef.current = false;
-          setIsRunning(false);
-        }
-      }, []);
-
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      return useExternalStoreRuntime({
-        messages,
-        setMessages: (msgs: readonly ThreadMessageLike[]) => {
-          if (isStreamingRef.current) return;
-          setMessages([...msgs]);
-        },
-        isRunning,
-        onNew,
-        onReload: async () => {
-          // Regenerate: remove last assistant message and re-send last user message
-          const lastUserIdx = [...messages].reverse().findIndex(m => m.role === 'user');
-          if (lastUserIdx === -1) return;
-          const actualIdx = messages.length - 1 - lastUserIdx;
-          const lastUserMsg = messages[actualIdx];
-          const content = lastUserMsg.content;
-          const firstPart = Array.isArray(content) ? content[0] : undefined;
-          const userText = firstPart && typeof firstPart === 'object' && 'type' in firstPart && firstPart.type === 'text' && 'text' in firstPart
-            ? (firstPart as { text: string }).text
-            : '';
-          if (!userText) return;
-          setMessages(prev => prev.slice(0, actualIdx + 1));
-          await onNew({ content: [{ type: 'text', text: userText }] });
-        },
-        convertMessage: (m: ThreadMessageLike) => m,
-        adapters: {
-          feedback: createDifyFeedbackAdapter(() => currentThreadIdRef.current),
-          attachments: createDifyAttachmentAdapter(),
-          ...(params?.speech_to_text?.enabled ? { dictation: createDifyDictationAdapter() } : {}),
-        },
-      });
-    },
-    adapter: threadListAdapter,
   });
 
   return (
     <DifyParamsContext.Provider value={params}>
-      <ThreadMetadataContext.Provider value={threadMetadata}>
-        <AssistantRuntimeProvider runtime={runtime}>
-          {initialThreadId && <InitialThreadSwitcher threadId={initialThreadId} />}
-          {children}
-        </AssistantRuntimeProvider>
-      </ThreadMetadataContext.Provider>
+      <ConversationIdContext.Provider value={conversationIdRef}>
+        <SavedThreadIdContext.Provider value={savedThreadIdRef}>
+          <AssistantRuntimeProvider runtime={runtime}>
+            {children}
+          </AssistantRuntimeProvider>
+        </SavedThreadIdContext.Provider>
+      </ConversationIdContext.Provider>
     </DifyParamsContext.Provider>
   );
-}
-
-function InitialThreadSwitcher({ threadId }: { threadId: string }) {
-  const runtime = useAssistantRuntime();
-  const switched = useRef(false);
-
-  useEffect(() => {
-    if (switched.current) return;
-    switched.current = true;
-    // Switch to the thread by remoteId after a short delay to let the thread list load
-    const timer = setTimeout(() => {
-      try {
-        runtime.threadList.switchToThread(threadId);
-      } catch {
-        // Thread may not exist yet — ignore
-      }
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [runtime, threadId]);
-
-  return null;
 }

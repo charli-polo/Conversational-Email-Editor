@@ -6,6 +6,7 @@ import { BriefRuntimeProvider } from '@/components/assistant-ui/brief-runtime-pr
 import { BriefThread } from '@/components/assistant-ui/brief-thread';
 import { BriefEmptyState } from '@/components/brief/brief-empty-state';
 import { SettingsSheet } from '@/components/settings/settings-sheet';
+import { SaveConversationButton } from '@/components/assistant-ui/save-conversation-button';
 import { ThreadListDrawer } from '@/components/assistant-ui/thread-list-drawer';
 
 interface BriefPageContentProps {
@@ -27,7 +28,7 @@ export function BriefPageContent({ initialThreadId }: BriefPageContentProps) {
   };
 
   return (
-    <BriefRuntimeProvider onBriefContent={handleBriefContent} initialThreadId={initialThreadId}>
+    <BriefRuntimeProvider onBriefContent={handleBriefContent}>
       <div className="h-screen w-screen overflow-hidden flex flex-col">
         {/* Minimal header */}
         <header className="h-12 border-b border-border bg-background flex items-center justify-between px-6 flex-shrink-0">
@@ -36,17 +37,20 @@ export function BriefPageContent({ initialThreadId }: BriefPageContentProps) {
             <h1 className="text-lg font-semibold text-foreground">Email Brief</h1>
             <span className="ml-3 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">v{process.env.NEXT_PUBLIC_APP_VERSION}</span>
           </div>
-          <SettingsSheet />
+          <div className="flex items-center gap-2">
+            <SaveConversationButton />
+            <SettingsSheet />
+          </div>
         </header>
 
         {/* Two-panel layout */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Left panel - Chat */}
-          <div className="w-[420px] flex-shrink-0">
+          {/* Left panel - Chat (40%) */}
+          <div className="w-2/5 flex-shrink-0 border-r border-border">
             <BriefThread />
           </div>
 
-          {/* Right panel - Brief empty state */}
+          {/* Right panel - Brief (60%) */}
           <div className="flex-1 overflow-y-auto">
             <BriefEmptyState
               isBriefComplete={isBriefComplete}

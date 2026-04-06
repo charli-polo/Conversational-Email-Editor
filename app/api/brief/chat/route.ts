@@ -109,7 +109,7 @@ export async function POST(req: Request) {
                       difyMessageId = parsed.message_id;
                     }
                     controller.enqueue(encoder.encode(
-                      `data: ${JSON.stringify({ answer: parsed.answer, conversation_id: parsed.conversation_id, message_id: parsed.message_id })}\n\n`
+                      `data: ${JSON.stringify({ event: parsed.event, answer: parsed.answer, conversation_id: parsed.conversation_id, message_id: parsed.message_id })}\n\n`
                     ));
                   } else if (parsed.event === 'agent_thought') {
                     controller.enqueue(encoder.encode(
