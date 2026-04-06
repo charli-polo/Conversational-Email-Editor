@@ -15,7 +15,6 @@ import {
   CheckIcon,
   ChevronRightIcon,
   CopyIcon,
-  RefreshCwIcon,
   SquareIcon,
   ThumbsUpIcon,
   ThumbsDownIcon,
@@ -97,19 +96,32 @@ const ReasoningSection: FC<{ text: string }> = ({ text }) => {
 // Messages
 // ---------------------------------------------------------------------------
 
+/** Only show reasoning section when tools were actually used (non-empty toolBadges).
+ *  Without tools, agent_thought just recaps the answer — showing it would be redundant. */
+const AssistantMessageContent: FC = () => {
+  const message = useMessage((m) => m);
+  const toolBadges = ((message.metadata?.custom as Record<string, unknown>)?.toolBadges as string[]) || [];
+  const hasToolUsage = toolBadges.length > 0;
+
+  return (
+    <MessagePrimitive.Parts>
+      {({ part }) => {
+        if (part.type === 'reasoning' && hasToolUsage) return <ReasoningSection text={(part as { type: 'reasoning'; text: string }).text} />;
+        if (part.type === 'reasoning') return null; // Skip redundant reasoning recap
+        if (part.type === 'text') return <ThinkingText />;
+        return null;
+      }}
+    </MessagePrimitive.Parts>
+  );
+};
+
 const AssistantMessage: FC = () => (
   <MessagePrimitive.Root
     className="fade-in slide-in-from-bottom-1 relative mx-auto w-full max-w-[var(--thread-max-width)] animate-in py-3 duration-150"
     data-role="assistant"
   >
     <div className="wrap-break-word px-2 text-foreground leading-relaxed">
-      <MessagePrimitive.Parts>
-        {({ part }) => {
-          if (part.type === 'reasoning') return <ReasoningSection text={(part as { type: 'reasoning'; text: string }).text} />;
-          if (part.type === 'text') return <ThinkingText />;
-          return null;
-        }}
-      </MessagePrimitive.Parts>
+      <AssistantMessageContent />
     </div>
 
     <div className="mt-1 ml-2 flex min-h-6 items-center gap-2">
@@ -145,7 +157,7 @@ const AssistantFeedbackBar: FC = () => (
   </ActionBarPrimitive.Root>
 );
 
-/** Copy + Regenerate — hidden while running, autohide not-last */
+/** Copy — hidden while running, autohide not-last */
 const AssistantActionBar: FC = () => (
   <ActionBarPrimitive.Root
     hideWhenRunning
@@ -162,11 +174,6 @@ const AssistantActionBar: FC = () => (
         </AuiIf>
       </TooltipIconButton>
     </ActionBarPrimitive.Copy>
-    <ActionBarPrimitive.Reload asChild>
-      <TooltipIconButton tooltip="Regenerate">
-        <RefreshCwIcon />
-      </TooltipIconButton>
-    </ActionBarPrimitive.Reload>
   </ActionBarPrimitive.Root>
 );
 
