@@ -25,6 +25,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { TooltipIconButton } from './tooltip-icon-button';
 import { MarkdownText } from './markdown-text';
 import { ComposerAddAttachment, ComposerAttachments, UserMessageAttachments } from './attachment';
+import { SuggestedAnswerChips } from './suggested-answer-chips';
 import { useDifyParams } from './brief-runtime-provider';
 import { useState, useEffect } from 'react';
 import { basePath } from '@/lib/base-path';
@@ -123,6 +124,8 @@ const AssistantMessage: FC = () => (
     <div className="wrap-break-word px-2 text-foreground leading-relaxed">
       <AssistantMessageContent />
     </div>
+
+    <SuggestedAnswerChips />
 
     <div className="mt-1 ml-2 flex min-h-6 items-center gap-2">
       <AssistantFeedbackBar />
