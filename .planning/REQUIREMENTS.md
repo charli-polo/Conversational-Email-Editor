@@ -34,6 +34,27 @@ Requirements for Conversation Management milestone. Each maps to roadmap phases.
 - [x] **DATA-02**: Conversation list query loads tags in a single joined query (no N+1)
 - [x] **DATA-03**: Shared data hook used by both conversations page and ThreadListDrawer
 
+## v1.2 Requirements
+
+Requirements for Suggested Answers milestone.
+
+### Parsing
+
+- [ ] **PARSE-01**: System extracts `<suggested_answer>` JSON block from Dify agent message text
+- [ ] **PARSE-02**: System strips the `<suggested_answer>` block from the displayed message (user sees clean text only)
+- [ ] **PARSE-03**: System handles messages with no `<suggested_answer>` block gracefully (no UI change)
+
+### Rendering
+
+- [ ] **RENDER-01**: User sees clickable action buttons below the assistant message bubble when suggested answers are present
+- [ ] **RENDER-02**: Each button displays the action's `label` text
+- [ ] **RENDER-03**: Buttons render as styled chips/pills consistent with the existing chat UI
+
+### Interaction
+
+- [ ] **INTERACT-01**: User can click an action button and it sends the action's `prompt` as their next chat message
+- [ ] **INTERACT-02**: After clicking an action, all suggested answer buttons for that message disappear
+
 ## v2 Requirements
 
 ### Bulk Operations
@@ -86,11 +107,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TAB-02 | Phase 10 | Complete |
 | TAB-03 | Phase 10 | Complete |
 
-**Coverage:**
+**v1.1 Coverage:**
 - v1.1 requirements: 15 total
 - Mapped to phases: 15
 - Unmapped: 0
 
+**v1.2 Coverage:**
+- v1.2 requirements: 8 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 8
+
 ---
 *Requirements defined: 2026-04-06*
-*Last updated: 2026-04-06 after roadmap creation*
+*Last updated: 2026-04-07 after v1.2 requirements defined*
