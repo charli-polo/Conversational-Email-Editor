@@ -96,8 +96,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-03 | Phase 7 | Complete |
 | LIST-01 | Phase 8 | Complete |
 | LIST-02 | Phase 8 | Complete |
-| LIST-03 | Phase 8 → 11 (verification) | Complete |
-| LIST-04 | Phase 8 → 11 (verification) | Complete |
+| LIST-03 | Phase 8 -> 11 (verification) | Complete |
+| LIST-04 | Phase 8 -> 11 (verification) | Complete |
 | LIST-05 | Phase 8 | Complete |
 | TAG-01 | Phase 9 | Complete |
 | TAG-02 | Phase 9 | Complete |
@@ -106,6 +106,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TAB-01 | Phase 10 | Complete |
 | TAB-02 | Phase 10 | Complete |
 | TAB-03 | Phase 10 | Complete |
+| PARSE-01 | Phase 13 | Pending |
+| PARSE-02 | Phase 13 | Pending |
+| PARSE-03 | Phase 13 | Pending |
+| RENDER-01 | Phase 14 | Pending |
+| RENDER-02 | Phase 14 | Pending |
+| RENDER-03 | Phase 14 | Pending |
+| INTERACT-01 | Phase 14 | Pending |
+| INTERACT-02 | Phase 14 | Pending |
 
 **v1.1 Coverage:**
 - v1.1 requirements: 15 total
@@ -114,9 +122,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 **v1.2 Coverage:**
 - v1.2 requirements: 8 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 8
+- Mapped to phases: 8
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-06*
-*Last updated: 2026-04-07 after v1.2 requirements defined*
+*Last updated: 2026-04-07 after v1.2 roadmap created*

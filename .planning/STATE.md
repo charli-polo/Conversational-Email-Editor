@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Suggested Answers
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
-last_updated: "2026-04-07T18:00:00.000Z"
+last_updated: "2026-04-07T19:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
-  total_plans: 0
+  total_plans: 2
   completed_plans: 0
 ---
 
@@ -16,70 +16,48 @@ progress:
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-07 — Milestone v1.2 started
+Phase: 13 of 14 (Suggested Answer Parsing)
+Plan: 0 of 1 in current phase
+Status: Ready to plan
+Last activity: 2026-04-07 — Roadmap created for v1.2 Suggested Answers
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-04-07)
 
 **Core value:** Two-step AI conversational flow — brief then edit
-**Current focus:** Milestone v1.2 — Suggested Answers
+**Current focus:** Milestone v1.2 — Suggested Answers (Phase 13: Parsing)
 
 ## Milestone: v1.2 — Suggested Answers
 
-(Phases TBD — defining requirements)
+- [ ] Phase 13: Suggested Answer Parsing (PARSE-01, PARSE-02, PARSE-03)
+- [ ] Phase 14: Suggested Answer UI (RENDER-01, RENDER-02, RENDER-03, INTERACT-01, INTERACT-02)
 
 ## Performance Metrics
 
 **Velocity:**
-
-- Total plans completed: 0 (v1.1)
-- Average duration: —
-- Total execution time: —
+- Total plans completed: 0 (v1.2)
+- Average duration: --
+- Total execution time: --
 
 *Updated after each plan completion*
 
 ## Accumulated Context
 
-### From v1.0
+### From v1.0 + v1.1
 
-- SQLite + Drizzle ORM with 4 tables (agents, test_prompts, conversations, messages), WAL mode
 - assistant-ui v0.12 with useLocalRuntime + Dify ChatModelAdapter
+- SSE streaming via POST /api/brief/chat with agent_thought forwarding
+- BriefThread/BriefMessage components for rendering messages
+- Existing SuggestionPrimitive pattern for opener suggestion chips
 - Save-on-demand persistence with Dify auto-generated titles
-- ThreadListDrawer with metadata context pattern
-- Inline toast pattern (no library)
+- Playwright E2E infrastructure with SSE mocks, DB isolation, workers:1
 
 ### Decisions
 
-for v1.1.
-
-- [Phase 07-schema-api-foundation]: 2-query approach over single LEFT JOIN to avoid cartesian product with tags
-- [Phase 07]: No useEffect inside useConversations hook -- consumers decide when to refresh for flexibility
-- [Phase 08-conversation-list]: useEffect refresh-on-mount keeps consumer-driven pattern from Phase 7
-- [Phase 08.1]: Exact match for Save button selector to avoid collision with Saved conversations drawer
-- [Phase 08.1]: Opener text in ThreadWelcome div, not data-role=assistant -- use getByText for opener tests
-- [Phase 08.1]: Serial describe blocks ensure empty state test runs before any seeding in shared DB
-- [Phase 08.1]: Row-scoped button locators (.group hasText) to avoid strict mode violations with multiple conversation rows
-- [Phase 09-tagging-system]: Tag names normalized via trim().toLowerCase() at API and component level to prevent duplicates
-- [Phase 09-tagging-system]: Duplicate tag assignment caught via try-catch on composite PK constraint (simpler, race-safe)
-- [Phase 09]: e.stopPropagation() alone on PopoverTrigger buttons -- preventDefault blocks Radix from toggling
-- [Phase 09]: Optimistic tag remove with refresh() rollback on API error for snappy UX
-- [Phase 10-tab-navigation]: Controlled Radix Tabs with useMemo filtering -- no TabsContent, single list driven by activeTab state
-- [Phase 10-tab-navigation]: Tab bar conditionally rendered only when allTags.length > 0 (All tab alone is redundant)
-- [Phase 11]: visibleTabs derived from conversations array via useMemo, allTags kept for autocomplete
-- [Phase 11]: Used 10-VERIFICATION.md as template for consistent verification report format
-- [Phase 12]: No bug found on /settings -- page loads correctly, smoke tests added as regression baseline
-- [Phase 12]: Used unique conversation names to avoid Playwright getByText substring collisions in regression spec
-- [Phase 12]: API-based resetDatabase over direct SQLite truncation -- simpler, works through running server
-- [Phase 12]: workers:1 in playwright.config.ts required for shared SQLite DB to prevent parallel spec contention
-- [Phase 12]: TAB-03b rewritten for Phase 11 reactive tabs -- original tested impossible orphan-tag behavior
-
-### Roadmap Evolution
-
-- Phase 08.1 inserted after Phase 08: E2E Testing Infrastructure (URGENT)
+None yet for v1.2.
 
 ### Blockers/Concerns
 
@@ -87,9 +65,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T15:26:51.883Z
-Stopped at: Completed 12-03-PLAN.md
+Last session: 2026-04-07
+Stopped at: Roadmap created for v1.2
 Resume file: None
 
 ---
-*Last updated: 2026-04-06 — Roadmap created*
+*Last updated: 2026-04-07 — Roadmap created*
