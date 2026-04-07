@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Conversation Management
 status: unknown
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-04-07T11:43:56.116Z"
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-04-07T11:54:05.746Z"
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -75,6 +75,7 @@ for v1.1.
 - [Phase 11]: visibleTabs derived from conversations array via useMemo, allTags kept for autocomplete
 - [Phase 11]: Used 10-VERIFICATION.md as template for consistent verification report format
 - [Phase 12]: No bug found on /settings -- page loads correctly, smoke tests added as regression baseline
+- [Phase 12]: Used unique conversation names to avoid Playwright getByText substring collisions in regression spec
 
 ### Roadmap Evolution
 
@@ -86,8 +87,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T11:43:56.114Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-04-07T11:54:05.743Z
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
 
 ---

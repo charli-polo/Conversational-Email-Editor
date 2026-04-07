@@ -133,7 +133,7 @@ Plans:
 
 Plans:
 - [x] 12-01-PLAN.md — Diagnose and fix /settings bug, verify /editor loads
-- [ ] 12-02-PLAN.md — E2E regression suite with all 7 critical flows
+- [x] 12-02-PLAN.md — E2E regression suite with all 7 critical flows
 
 ## Progress
 
@@ -148,7 +148,7 @@ Plans:
 | 9. Tagging System | v1.1 | 0/2 | Planned | - |
 | 10. Tab Navigation | v1.1 | 1/1 | Complete    | 2026-04-07 |
 | 11. Navigation & Verification | v1.1 | 2/2 | Complete    | 2026-04-07 |
-| 12. Regression Test Suite | v1.1 | 1/2 | In Progress|  |
+| 12. Regression Test Suite | v1.1 | 2/2 | Complete   | 2026-04-07 |
 
 ---
 *Roadmap created: 2026-03-25*
