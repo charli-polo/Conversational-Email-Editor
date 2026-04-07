@@ -84,11 +84,11 @@ Plans:
   2. User can remove a tag from a conversation
   3. Each conversation in the list displays its assigned tags
   4. When typing a tag name, user sees autocomplete suggestions from existing tags
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
+- [x] 09-01-PLAN.md — Tag API endpoints (assign/remove) + shadcn Popover/Command + TagPopover component
+- [ ] 09-02-PLAN.md — Wire tag display, add/remove into ConversationListItem and ConversationsPage
 
 ### Phase 10: Tab Navigation
 **Goal**: Users can filter the conversation list by tag using a tab bar
@@ -113,9 +113,9 @@ Plans:
 | 7. Schema & API Foundation | v1.1 | 2/2 | Complete   | 2026-04-07 |
 | 8. Conversation List | v1.1 | 0/2 | Planned | - |
 | 8.1 E2E Testing Infrastructure | v1.1 | 0/2 | Planned | - |
-| 9. Tagging System | v1.1 | 0/? | Not started | - |
+| 9. Tagging System | v1.1 | 0/2 | Planned | - |
 | 10. Tab Navigation | v1.1 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-03-25*
-*Updated: 2026-04-07 — Phase 08.1 planned (2 plans)*
+*Updated: 2026-04-07 — Phase 9 planned (2 plans)*

@@ -26,10 +26,24 @@ Two-step conversational flow: brief collection via AI agent, then email editing 
 - ✓ Speech-to-text via Dify audio endpoint — v1.0
 - ✓ Collapsible reasoning display (tool-gated) — v1.0
 - ✓ 34 unit tests + E2E Playwright spec — v1.0
+- ✓ Playwright E2E infrastructure with webServer, DB isolation, SSE mocks — v1.1 Phase 8.1
+- ✓ E2E tests for conversation list (LIST-01 through LIST-05) — v1.1 Phase 8.1
 
 ### Active
 
-(None — define in next milestone via `/gsd:new-milestone`)
+- Tag schema (tags + conversationTags tables) with cascade deletes — Phase 7
+- Threads API rewritten with 2-query join (no N+1) returning tags inline — Phase 7
+- Shared useConversations hook for cross-component data consumption — Phase 7
+
+## Current Milestone: v1.1 Conversation Management
+
+**Goal:** Give users a dedicated page to browse, organize, and manage all their saved conversations.
+
+**Target features:**
+- Conversation list page with details (agent, timestamp)
+- Navigate to, rename, and delete conversations
+- Free-text tagging system
+- Tab view per tag (+ All tab)
 
 ### Out of Scope
 
@@ -66,6 +80,26 @@ Version: 0.2.0-rc.1
 | Dify auto-generated titles | Let Dify name conversations based on content | ✓ Good |
 | Tool-gated reasoning display | agent_thought without tools just recaps answer | ✓ Good — avoids confusion |
 | Inline toast (no library) | Keep bundle light, matches no-new-deps approach | ✓ Good |
+| 2-query join over N+1 | Single pass for threads + batch for tags, grouped in-memory | ✓ Good — Phase 7 |
+| useConversations shared hook | Single data source for drawer + future conversations page | ✓ Good — Phase 7 |
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+Last updated: 2026-04-07
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
 
 ---
-*Last updated: 2026-04-06 after v1.0 milestone*
+*Last updated: 2026-04-07 after Phase 8.1 e2e-testing-infrastructure complete*

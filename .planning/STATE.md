@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Conversation Management
 status: unknown
-stopped_at: Completed 08.1-02-PLAN.md
-last_updated: "2026-04-07T07:55:05.933Z"
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-04-07T09:11:03.798Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 5
+  total_plans: 8
+  completed_plans: 6
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 08.1 (e2e-testing-infrastructure) — EXECUTING
+Phase: 09 (tagging-system) — EXECUTING
 Plan: 2 of 2
 
 ## Project Reference
@@ -24,7 +24,7 @@ Plan: 2 of 2
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** Two-step AI conversational flow — brief then edit
-**Current focus:** Phase 08.1 — e2e-testing-infrastructure
+**Current focus:** Phase 09 — tagging-system
 
 ## Milestone: v1.1 — Conversation Management
 
@@ -66,6 +66,8 @@ for v1.1.
 - [Phase 08.1]: Opener text in ThreadWelcome div, not data-role=assistant -- use getByText for opener tests
 - [Phase 08.1]: Serial describe blocks ensure empty state test runs before any seeding in shared DB
 - [Phase 08.1]: Row-scoped button locators (.group hasText) to avoid strict mode violations with multiple conversation rows
+- [Phase 09-tagging-system]: Tag names normalized via trim().toLowerCase() at API and component level to prevent duplicates
+- [Phase 09-tagging-system]: Duplicate tag assignment caught via try-catch on composite PK constraint (simpler, race-safe)
 
 ### Roadmap Evolution
 
@@ -77,8 +79,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T07:55:05.930Z
-Stopped at: Completed 08.1-02-PLAN.md
+Last session: 2026-04-07T09:11:03.795Z
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None
 
 ---
