@@ -5,18 +5,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { History, MessageSquare, Trash2 } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { basePath } from '@/lib/base-path';
+import { useConversations, type ConversationWithTags } from '@/hooks/use-conversations';
 
-interface SavedThread {
-  id: string;
-  title: string | null;
-  preview: string | null;
-  agent_label: string | null;
-  created_at: string;
-}
-
-function ThreadListItem({ thread, onDelete }: { thread: SavedThread; onDelete: (id: string) => void }) {
+function ThreadListItem({ thread, onDelete }: { thread: ConversationWithTags; onDelete: (id: string) => void }) {
   return (
     <div className="group flex items-center gap-1">
       <a
@@ -52,25 +45,15 @@ function ThreadListItem({ thread, onDelete }: { thread: SavedThread; onDelete: (
 
 export function ThreadListDrawer() {
   const [open, setOpen] = useState(false);
-  const [threads, setThreads] = useState<SavedThread[]>([]);
-
-  const fetchThreads = useCallback(async () => {
-    try {
-      const res = await fetch(`${basePath}/api/threads`);
-      const data = await res.json();
-      setThreads(data.threads || []);
-    } catch {
-      // ignore
-    }
-  }, []);
+  const { conversations, refresh, removeConversation } = useConversations();
 
   useEffect(() => {
-    if (open) fetchThreads();
-  }, [open, fetchThreads]);
+    if (open) refresh();
+  }, [open, refresh]);
 
   const handleDelete = async (id: string) => {
     await fetch(`${basePath}/api/threads/${id}`, { method: 'DELETE' });
-    setThreads(prev => prev.filter(t => t.id !== id));
+    removeConversation(id);
   };
 
   return (
@@ -86,7 +69,7 @@ export function ThreadListDrawer() {
         </SheetHeader>
         <ScrollArea className="flex-1 h-[calc(100vh-80px)]">
           <div className="px-2 space-y-1">
-            {threads.length === 0 ? (
+            {conversations.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
                 <MessageSquare className="h-8 w-8 text-muted-foreground/50 mb-2" />
                 <p className="text-sm text-muted-foreground">No saved conversations</p>
@@ -95,7 +78,7 @@ export function ThreadListDrawer() {
                 </p>
               </div>
             ) : (
-              threads.map(thread => (
+              conversations.map(thread => (
                 <ThreadListItem key={thread.id} thread={thread} onDelete={handleDelete} />
               ))
             )}
