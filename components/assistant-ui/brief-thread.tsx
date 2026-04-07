@@ -116,23 +116,32 @@ const AssistantMessageContent: FC = () => {
   );
 };
 
-const AssistantMessage: FC = () => (
-  <MessagePrimitive.Root
-    className="fade-in slide-in-from-bottom-1 relative mx-auto w-full max-w-[var(--thread-max-width)] animate-in py-3 duration-150"
-    data-role="assistant"
-  >
-    <div className="wrap-break-word px-2 text-foreground leading-relaxed">
-      <AssistantMessageContent />
-    </div>
+const AssistantMessage: FC = () => {
+  const isEmpty = useMessage((m) =>
+    m.content
+      .filter((p) => p.type === 'text')
+      .every((p) => (p as { type: 'text'; text: string }).text === '')
+  );
+  const isRunning = useMessage((m) => m.status?.type === 'running');
 
-    <SuggestedAnswerChips />
+  return (
+    <MessagePrimitive.Root
+      className="fade-in slide-in-from-bottom-1 relative mx-auto w-full max-w-[var(--thread-max-width)] animate-in py-3 duration-150"
+      data-role="assistant"
+    >
+      <div className="wrap-break-word px-2 text-foreground leading-relaxed">
+        {isEmpty && isRunning ? <ThinkingIndicator /> : <AssistantMessageContent />}
+      </div>
 
-    <div className="mt-1 ml-2 flex min-h-6 items-center gap-2">
-      <AssistantFeedbackBar />
-      <AssistantActionBar />
-    </div>
-  </MessagePrimitive.Root>
-);
+      <SuggestedAnswerChips />
+
+      <div className="mt-1 ml-2 flex min-h-6 items-center gap-2">
+        <AssistantFeedbackBar />
+        <AssistantActionBar />
+      </div>
+    </MessagePrimitive.Root>
+  );
+};
 
 /** Feedback buttons (like/dislike) — always visible (D-12, UX-01) */
 const AssistantFeedbackBar: FC = () => (
