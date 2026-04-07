@@ -87,7 +87,7 @@ export function ConversationListItem({
           onAssign={onAssignTag}
           trigger={
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onClick={(e) => { e.stopPropagation(); }}
               className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent transition-colors"
               title="Add tag"
             >
