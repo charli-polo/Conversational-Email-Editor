@@ -61,7 +61,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Page route, list rendering, empty state (LIST-01, LIST-02, LIST-05)
+- [x] 08-01-PLAN.md — Page route, list rendering, empty state (LIST-01, LIST-02, LIST-05)
 - [ ] 08-02-PLAN.md — Inline rename and delete with confirmation (LIST-03, LIST-04)
 
 ### Phase 9: Tagging System

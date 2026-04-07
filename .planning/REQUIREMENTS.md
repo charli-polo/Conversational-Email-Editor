@@ -9,11 +9,11 @@ Requirements for Conversation Management milestone. Each maps to roadmap phases.
 
 ### Conversation List
 
-- [ ] **LIST-01**: User can view all saved conversations on a dedicated page with agent name and timestamp
-- [ ] **LIST-02**: User can navigate to a conversation from the list page
+- [x] **LIST-01**: User can view all saved conversations on a dedicated page with agent name and timestamp
+- [x] **LIST-02**: User can navigate to a conversation from the list page
 - [ ] **LIST-03**: User can rename a conversation inline from the list page
 - [ ] **LIST-04**: User can delete a conversation with confirmation from the list page
-- [ ] **LIST-05**: User sees empty state when no conversations exist
+- [x] **LIST-05**: User sees empty state when no conversations exist
 
 ### Tagging
 
@@ -73,11 +73,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-01 | Phase 7 | Complete |
 | DATA-02 | Phase 7 | Complete |
 | DATA-03 | Phase 7 | Complete |
-| LIST-01 | Phase 8 | Pending |
-| LIST-02 | Phase 8 | Pending |
+| LIST-01 | Phase 8 | Complete |
+| LIST-02 | Phase 8 | Complete |
 | LIST-03 | Phase 8 | Pending |
 | LIST-04 | Phase 8 | Pending |
-| LIST-05 | Phase 8 | Pending |
+| LIST-05 | Phase 8 | Complete |
 | TAG-01 | Phase 9 | Pending |
 | TAG-02 | Phase 9 | Pending |
 | TAG-03 | Phase 9 | Pending |

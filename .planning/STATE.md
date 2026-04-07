@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Conversation Management
 status: unknown
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-04-07T04:55:27.239Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-04-07T05:39:49.913Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 07 (schema-api-foundation) — EXECUTING
+Phase: 08 (conversation-list) — EXECUTING
 Plan: 2 of 2
 
 ## Project Reference
@@ -24,7 +24,7 @@ Plan: 2 of 2
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** Two-step AI conversational flow — brief then edit
-**Current focus:** Phase 07 — schema-api-foundation
+**Current focus:** Phase 08 — conversation-list
 
 ## Milestone: v1.1 — Conversation Management
 
@@ -61,6 +61,7 @@ for v1.1.
 
 - [Phase 07-schema-api-foundation]: 2-query approach over single LEFT JOIN to avoid cartesian product with tags
 - [Phase 07]: No useEffect inside useConversations hook -- consumers decide when to refresh for flexibility
+- [Phase 08-conversation-list]: useEffect refresh-on-mount keeps consumer-driven pattern from Phase 7
 
 ### Blockers/Concerns
 
@@ -68,8 +69,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T04:55:27.237Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-04-07T05:39:49.910Z
+Stopped at: Completed 08-01-PLAN.md
 Resume file: None
 
 ---
