@@ -18,7 +18,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { basePath } from '@/lib/base-path';
-import { Plus } from 'lucide-react';
+import { Plus, Home } from 'lucide-react';
 
 export function ConversationsPage() {
   const { conversations, isLoading, refresh, removeConversation, updateConversation } = useConversations();
@@ -164,7 +164,12 @@ export function ConversationsPage() {
   return (
     <div className="flex flex-col h-screen">
       <div className="flex items-center justify-between px-6 py-4 border-b">
-        <h1 className="text-xl font-semibold">Conversations</h1>
+        <div className="flex items-center gap-3">
+          <a href={basePath + '/'} title="Home">
+            <Home className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
+          </a>
+          <h1 className="text-xl font-semibold">Conversations</h1>
+        </div>
         <a href={basePath + '/'}>
           <Button variant="outline" size="sm">
             <Plus className="h-4 w-4 mr-1" />
