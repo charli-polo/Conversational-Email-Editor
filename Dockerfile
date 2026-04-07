@@ -22,9 +22,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Mount Railway volume at /app/data for SQLite persistence
 ENV DATABASE_PATH=/app/data/db.sqlite
 
-RUN apk add --no-cache su-exec
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -36,10 +36,9 @@ COPY --from=deps /app/node_modules/bindings ./node_modules/bindings
 COPY --from=deps /app/node_modules/file-uri-to-path ./node_modules/file-uri-to-path
 COPY --from=deps /app/node_modules/prebuild-install ./node_modules/prebuild-install
 
-# Entrypoint: ensure volume dir is writable by nextjs, then drop to nextjs
-COPY --chmod=755 docker-entrypoint.sh ./
+USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["node", "server.js"]
