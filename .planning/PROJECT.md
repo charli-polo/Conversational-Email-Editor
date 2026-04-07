@@ -31,9 +31,19 @@ Two-step conversational flow: brief collection via AI agent, then email editing 
 
 ### Active
 
-- Tag schema (tags + conversationTags tables) with cascade deletes — Phase 7
-- Threads API rewritten with 2-query join (no N+1) returning tags inline — Phase 7
-- Shared useConversations hook for cross-component data consumption — Phase 7
+(No active requirements — v1.1 milestone complete pending audit)
+
+### Recently Validated
+
+- Tag schema (tags + conversationTags tables) with cascade deletes — v1.1 Phase 7
+- Threads API rewritten with 2-query join (no N+1) returning tags inline — v1.1 Phase 7
+- Shared useConversations hook for cross-component data consumption — v1.1 Phase 7
+- Tag-based tab bar filtering with instant client-side switching — v1.1 Phase 10
+- In-app navigation to /conversations from brief page header — v1.1 Phase 11
+- Reactive tab bar (stale tag tabs removed when last conversation with tag is deleted) — v1.1 Phase 11
+- Phase 8 verification trail (VERIFICATION.md + 08-02 SUMMARY.md) — v1.1 Phase 11
+- E2E regression suite covering all 5 app routes + 8 critical flows — v1.1 Phase 12
+- Cross-spec DB contamination fixed (resetDatabase helper, workers:1) — v1.1 Phase 12
 
 ## Current Milestone: v1.1 Conversation Management
 
@@ -102,4 +112,4 @@ Last updated: 2026-04-07
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after Phase 8.1 e2e-testing-infrastructure complete*
+*Last updated: 2026-04-07 after Phase 12 regression-test-suite complete (gap closure verified)*
