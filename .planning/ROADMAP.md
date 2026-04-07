@@ -112,7 +112,11 @@ Plans:
   1. User can reach /conversations from within the app (sidebar or header link)
   2. Removing the last conversation with a tag refreshes the tab bar immediately (no stale tabs)
   3. Phase 8 has VERIFICATION.md and 08-02 has SUMMARY.md (LIST-03/LIST-04 tracking gaps closed)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Navigation link + stale tab fix (code changes)
+- [ ] 11-02-PLAN.md — Phase 8 verification trail (08-02-SUMMARY.md + 08-VERIFICATION.md)
 
 ### Phase 12: Regression Test Suite
 **Goal**: E2E smoke tests for every app route plus critical path coverage — catch route-level regressions like the /settings bug
@@ -139,9 +143,9 @@ Plans:
 | 8.1 E2E Testing Infrastructure | v1.1 | 0/2 | Planned | - |
 | 9. Tagging System | v1.1 | 0/2 | Planned | - |
 | 10. Tab Navigation | v1.1 | 1/1 | Complete    | 2026-04-07 |
-| 11. Navigation & Verification | v1.1 | 0/0 | Planned | - |
+| 11. Navigation & Verification | v1.1 | 0/2 | Planned | - |
 | 12. Regression Test Suite | v1.1 | 0/0 | Planned | - |
 
 ---
 *Roadmap created: 2026-03-25*
-*Updated: 2026-04-07 — Added gap closure phases 11-12 from milestone audit*
+*Updated: 2026-04-07 — Phase 11 planned: 2 plans in 1 wave*
