@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    if (!body || body.version !== 1) {
+    if (!body || typeof body !== 'object') {
       return NextResponse.json({ error: 'Invalid config file format' }, { status: 400 });
     }
 

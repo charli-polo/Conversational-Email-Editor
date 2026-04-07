@@ -86,23 +86,28 @@ export default function SettingsPage() {
     if (!file) return;
     try {
       const text = await file.text();
-      const data = JSON.parse(text);
+      let data: unknown;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        setImportStatus('Error: file is not valid JSON');
+        return;
+      }
       const res = await fetch('/api/settings/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      const result = await res.json();
       if (!res.ok) {
-        const err = await res.json();
-        setImportStatus(`Error: ${err.error}`);
+        setImportStatus(`Error: ${result.error || 'import failed'}`);
         return;
       }
-      const result = await res.json();
       setImportStatus(`Imported ${result.agentsAdded} agent(s), ${result.promptsAdded} prompt(s)`);
       handleAgentRefresh();
       handlePromptRefresh();
-    } catch {
-      setImportStatus('Error: invalid JSON file');
+    } catch (err) {
+      setImportStatus(`Error: ${err instanceof Error ? err.message : 'unknown error'}`);
     }
     // Reset file input so the same file can be re-imported
     if (fileInputRef.current) fileInputRef.current.value = '';
