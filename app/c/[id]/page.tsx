@@ -9,6 +9,7 @@ import { SettingsSheet } from '@/components/settings/settings-sheet';
 import { SaveConversationButton } from '@/components/assistant-ui/save-conversation-button';
 import { ThreadListDrawer } from '@/components/assistant-ui/thread-list-drawer';
 import { SavedThreadLoader } from '@/components/assistant-ui/saved-thread-loader';
+import { List } from 'lucide-react';
 import { basePath } from '@/lib/base-path';
 
 interface ThreadData {
@@ -54,6 +55,13 @@ function ConversationPageInner({ id, thread }: { id: string; thread: ThreadData 
       <header className="h-12 border-b border-border bg-background flex items-center justify-between px-6 flex-shrink-0">
         <div className="flex items-center gap-2">
           <ThreadListDrawer />
+          <a
+            href={basePath + '/conversations'}
+            className="flex items-center"
+            title="All conversations"
+          >
+            <List className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
+          </a>
           <h1 className="text-lg font-semibold text-foreground">Email Brief</h1>
           {thread?.title && (
             <span className="ml-2 text-sm text-muted-foreground truncate max-w-[200px]">

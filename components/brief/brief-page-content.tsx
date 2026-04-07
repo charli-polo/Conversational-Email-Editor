@@ -8,6 +8,8 @@ import { BriefEmptyState } from '@/components/brief/brief-empty-state';
 import { SettingsSheet } from '@/components/settings/settings-sheet';
 import { SaveConversationButton } from '@/components/assistant-ui/save-conversation-button';
 import { ThreadListDrawer } from '@/components/assistant-ui/thread-list-drawer';
+import { List } from 'lucide-react';
+import { basePath } from '@/lib/base-path';
 
 interface BriefPageContentProps {
   initialThreadId?: string;
@@ -34,6 +36,13 @@ export function BriefPageContent({ initialThreadId }: BriefPageContentProps) {
         <header className="h-12 border-b border-border bg-background flex items-center justify-between px-6 flex-shrink-0">
           <div className="flex items-center gap-2">
             <ThreadListDrawer />
+            <a
+              href={basePath + '/conversations'}
+              className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors"
+              title="All conversations"
+            >
+              <List className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
+            </a>
             <h1 className="text-lg font-semibold text-foreground">Email Brief</h1>
             <span className="ml-3 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">v{process.env.NEXT_PUBLIC_APP_VERSION}</span>
           </div>

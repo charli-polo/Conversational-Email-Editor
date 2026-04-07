@@ -1,94 +1,98 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
+milestone: v1.1
+milestone_name: Conversation Management
 status: unknown
-last_updated: "2026-04-06T19:48:24.289Z"
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-04-07T15:29:19.427Z"
 progress:
-  total_phases: 6
-  completed_phases: 3
-  total_plans: 20
-  completed_plans: 18
-  percent: 90
+  total_phases: 7
+  completed_phases: 7
+  total_plans: 14
+  completed_plans: 14
 ---
 
 # Project State
 
+## Current Position
+
+Phase: 12
+Plan: Not started
+
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-05)
+See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** Two-step AI conversational flow — brief then edit
-**Current focus:** Phase 06 — chat-ui-rewrite
+**Current focus:** Phase 12 — regression-test-suite
 
-## Milestone: v1.0 — Brief Flow MVP + Settings & Persistence
+## Milestone: v1.1 — Conversation Management
 
-| Phase | Name | Status | Progress |
-|-------|------|--------|----------|
-| 1 | Dify Agent API Integration | Complete | 100% |
-| 2 | Brief Page UI | Complete | 100% |
-| 3 | Flow Navigation & Wiring | Complete | 100% |
-| 4 | Settings Panel & Conversation Persistence | In Progress | 7/7 plans |
+| Phase | Status |
+|-------|--------|
+| 7. Schema & API Foundation | Ready to plan |
+| 8. Conversation List | Not started |
+| 9. Tagging System | Not started |
+| 10. Tab Navigation | Not started |
 
-Progress: [█████████░] 90%
+## Performance Metrics
 
-## Session Log
+**Velocity:**
 
-- 2026-03-25: Project initialized, requirements defined, roadmap created
-- 2026-03-25: Completed 01-01-PLAN.md — Dify API client library with types (DIFY-04 done)
-- 2026-03-25: Completed 01-02-PLAN.md — SSE proxy route with end-to-end Dify verification (DIFY-01, DIFY-02, DIFY-03 done)
-- 2026-03-25: Phase 01 (Dify Agent API Integration) complete
-- 2026-03-25: Completed 02-01-PLAN.md — Dify parameters proxy route and useBriefChat hook (BRIEF-02 done)
-- 2026-04-05: Phases 2-3 marked complete (code already shipped: brief page UI, route swap, navigation)
-- 2026-04-05: Phase 4 added — Settings Panel, Chat Upgrade & Conversation Persistence (12 requirements, 6 plans)
-- 2026-04-05: Added CHAT-01/02/03 requirements for assistant-ui v0.12 upgrade (replacing custom chat with library primitives)
-- 2026-04-05: Completed 04-01-PLAN.md — SQLite database foundation with better-sqlite3, Drizzle ORM, 4-table schema (PERSIST-01, PERSIST-05 done)
-- 2026-04-05: Completed 04-02-PLAN.md — Upgraded assistant-ui to v0.12.x, replaced custom chat with library primitives, added SettingsSheet (CHAT-01, CHAT-02, CHAT-03 done)
-- 2026-04-05: Completed 04-03-PLAN.md — Agent and test prompt API routes with CRUD endpoints
-- 2026-04-05: Completed 04-04-PLAN.md — Settings page UI with agent/test prompt CRUD, D-09 agent switch confirmation (SETTINGS-01 done)
-- 2026-04-05: Completed 04-07-PLAN.md — ThreadListDrawer gap closure: empty state, preview text, agent badges (PERSIST-02 done)
-- 2026-04-05: Completed 05-01-PLAN.md — Dify backend foundations: DB schema migration, types/client extensions, 3 API proxy routes, 3 adapter factories (UX-02, UX-06, UX-08 done)
-- 2026-04-05: Completed 05-02-PLAN.md — SSE streaming extension and runtime wiring: agent_thought forwarding, adapters, opener, reasoning, DifyParamsContext (UX-03, UX-04, UX-07 done)
-- 2026-04-05: Completed 05-03-PLAN.md — Message action toolbar, streaming reasoning indicator, collapsible reasoning section, opener suggestions wired into BriefMessage (UX-01, UX-07 done)
+- Total plans completed: 0 (v1.1)
+- Average duration: —
+- Total execution time: —
 
-## Decisions
-
-- **04-01:** Track drizzle migrations in git for Railway deployment (removed drizzle/ from .gitignore)
-- **04-01:** Use ISO text timestamps in SQLite for human readability
-- **04-02:** Used v0.12 single Message component with MessagePrimitive.If for role branching (adapted to new API)
-- **04-02:** Preserved old custom chat components unused for rollback safety
-- **04-04:** Used refreshKey state pattern for list re-fetch after CRUD mutations
-- **04-04:** Agent switch confirmation archives active thread before activating new agent per D-09
-- **04-04:** Test prompt reordering via up/down arrows in dropdown actions menu
-
-- **04-07:** Used React context (ThreadMetadataContext) to pass metadata to drawer since ThreadListItemPrimitive doesn't support custom props
-- **04-07:** Used metadata map length check for empty state since ThreadListPrimitive.Empty not available in v0.12
-
-- **05-01:** Feedback route persists locally even if Dify API call fails (graceful degradation)
-- **05-01:** Parameters route now resolves active agent config instead of using env vars only
-- **05-01:** DictationAdapter uses MediaRecorder with audio/webm for Dify STT endpoint
-- [Phase 05]: Used any type for onNew to work around AppendMessage readonly union type; dictation adapter key (not speech) per v0.12 API
-- [Phase 05]: Used FileText icon as universal file type in composer chips; AttachmentPrimitive.Name wrapped in span for truncation styling
-- **05-03:** Used useAuiState from @assistant-ui/store (v0.12 API) instead of deprecated useMessage for message metadata access
-- **05-03:** Three separate ActionBarPrimitive.Root instances for hybrid visibility (feedback always, copy/export hover, regenerate last-only)
-- **05-03:** StreamingReasoningIndicator and ReasoningSection as distinct components for streaming vs post-response states
-- [Phase 06]: Inline toast with auto-dismiss for save confirmation, avoiding external toast library
-- [Phase 06]: ConversationPageInner pattern to use context hooks inside BriefRuntimeProvider
-- [Phase 06]: Yield final result with metadata instead of return (AsyncGenerator void constraint)
-- [Phase 06]: Refactored rename proxy route to use renameConversation client function
-- [Phase 06]: Two separate ActionBarPrimitive.Root instances: feedback always visible, copy/regenerate on hover with autohide
-- [Phase 06]: TooltipTrigger asChild pattern (not render=) for radix-ui compatibility in attachment component
+*Updated after each plan completion*
 
 ## Accumulated Context
 
+### From v1.0
+
+- SQLite + Drizzle ORM with 4 tables (agents, test_prompts, conversations, messages), WAL mode
+- assistant-ui v0.12 with useLocalRuntime + Dify ChatModelAdapter
+- Save-on-demand persistence with Dify auto-generated titles
+- ThreadListDrawer with metadata context pattern
+- Inline toast pattern (no library)
+
+### Decisions
+
+for v1.1.
+
+- [Phase 07-schema-api-foundation]: 2-query approach over single LEFT JOIN to avoid cartesian product with tags
+- [Phase 07]: No useEffect inside useConversations hook -- consumers decide when to refresh for flexibility
+- [Phase 08-conversation-list]: useEffect refresh-on-mount keeps consumer-driven pattern from Phase 7
+- [Phase 08.1]: Exact match for Save button selector to avoid collision with Saved conversations drawer
+- [Phase 08.1]: Opener text in ThreadWelcome div, not data-role=assistant -- use getByText for opener tests
+- [Phase 08.1]: Serial describe blocks ensure empty state test runs before any seeding in shared DB
+- [Phase 08.1]: Row-scoped button locators (.group hasText) to avoid strict mode violations with multiple conversation rows
+- [Phase 09-tagging-system]: Tag names normalized via trim().toLowerCase() at API and component level to prevent duplicates
+- [Phase 09-tagging-system]: Duplicate tag assignment caught via try-catch on composite PK constraint (simpler, race-safe)
+- [Phase 09]: e.stopPropagation() alone on PopoverTrigger buttons -- preventDefault blocks Radix from toggling
+- [Phase 09]: Optimistic tag remove with refresh() rollback on API error for snappy UX
+- [Phase 10-tab-navigation]: Controlled Radix Tabs with useMemo filtering -- no TabsContent, single list driven by activeTab state
+- [Phase 10-tab-navigation]: Tab bar conditionally rendered only when allTags.length > 0 (All tab alone is redundant)
+- [Phase 11]: visibleTabs derived from conversations array via useMemo, allTags kept for autocomplete
+- [Phase 11]: Used 10-VERIFICATION.md as template for consistent verification report format
+- [Phase 12]: No bug found on /settings -- page loads correctly, smoke tests added as regression baseline
+- [Phase 12]: Used unique conversation names to avoid Playwright getByText substring collisions in regression spec
+- [Phase 12]: API-based resetDatabase over direct SQLite truncation -- simpler, works through running server
+- [Phase 12]: workers:1 in playwright.config.ts required for shared SQLite DB to prevent parallel spec contention
+- [Phase 12]: TAB-03b rewritten for Phase 11 reactive tabs -- original tested impossible orphan-tag behavior
+
 ### Roadmap Evolution
 
-- Phase 5 added: Dify Chat UX Enhancements (conversation opener, feedback, message actions, file upload, STT, thinking dots, suggested questions)
+- Phase 08.1 inserted after Phase 08: E2E Testing Infrastructure (URGENT)
+
+### Blockers/Concerns
+
+None yet.
+
+## Session Continuity
+
+Last session: 2026-04-07T15:26:51.883Z
+Stopped at: Completed 12-03-PLAN.md
+Resume file: None
 
 ---
-*Last updated: 2026-04-05 — Phase 5 added to roadmap*
-
-- [Phase 04]: Refactored Dify client to accept optional AgentConfig for backward compatibility with env vars
-- [Phase 04]: API key masking uses sk-...last4 format on all agent GET responses
-- [Phase 04]: Agent API key REDACTED in thread config snapshot; real key resolved via agentId at runtime
-- [Phase 04]: Stale Dify conversation_id fallback: retry without ID on error, clear stored ID
+*Last updated: 2026-04-06 — Roadmap created*
