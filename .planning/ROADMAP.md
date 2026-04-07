@@ -69,11 +69,11 @@ Plans:
 **Goal:** Reliable Playwright E2E testing infrastructure with mocked Dify, DB isolation, and coverage for Phase 6 and Phase 8 features
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08
 **Depends on:** Phase 8
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 08.1-01-PLAN.md — Playwright config (webServer, globalSetup), test helpers, fix Phase 6 tests
-- [ ] 08.1-02-PLAN.md — Phase 8 E2E tests (LIST-01 through LIST-05)
+- [x] 08.1-02-PLAN.md — Phase 8 E2E tests (LIST-01 through LIST-05)
 
 ### Phase 9: Tagging System
 **Goal**: Users can organize conversations with free-text tags

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Conversation Management
 status: unknown
-stopped_at: Completed 08.1-01-PLAN.md
-last_updated: "2026-04-07T07:50:10.540Z"
+stopped_at: Completed 08.1-02-PLAN.md
+last_updated: "2026-04-07T07:55:05.933Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -64,6 +64,8 @@ for v1.1.
 - [Phase 08-conversation-list]: useEffect refresh-on-mount keeps consumer-driven pattern from Phase 7
 - [Phase 08.1]: Exact match for Save button selector to avoid collision with Saved conversations drawer
 - [Phase 08.1]: Opener text in ThreadWelcome div, not data-role=assistant -- use getByText for opener tests
+- [Phase 08.1]: Serial describe blocks ensure empty state test runs before any seeding in shared DB
+- [Phase 08.1]: Row-scoped button locators (.group hasText) to avoid strict mode violations with multiple conversation rows
 
 ### Roadmap Evolution
 
@@ -75,8 +77,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T07:50:10.537Z
-Stopped at: Completed 08.1-01-PLAN.md
+Last session: 2026-04-07T07:55:05.930Z
+Stopped at: Completed 08.1-02-PLAN.md
 Resume file: None
 
 ---
