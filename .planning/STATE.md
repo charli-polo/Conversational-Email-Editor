@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Conversation Management
 status: unknown
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-04-07T04:53:07.001Z"
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-04-07T04:55:27.239Z"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -60,6 +60,7 @@ See: .planning/PROJECT.md (updated 2026-04-06)
 for v1.1.
 
 - [Phase 07-schema-api-foundation]: 2-query approach over single LEFT JOIN to avoid cartesian product with tags
+- [Phase 07]: No useEffect inside useConversations hook -- consumers decide when to refresh for flexibility
 
 ### Blockers/Concerns
 
@@ -67,8 +68,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T04:53:06.998Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-04-07T04:55:27.237Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
 
 ---

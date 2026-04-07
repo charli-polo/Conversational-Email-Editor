@@ -32,7 +32,7 @@ Requirements for Conversation Management milestone. Each maps to roadmap phases.
 
 - [x] **DATA-01**: Tags stored in junction table with efficient query support
 - [x] **DATA-02**: Conversation list query loads tags in a single joined query (no N+1)
-- [ ] **DATA-03**: Shared data hook used by both conversations page and ThreadListDrawer
+- [x] **DATA-03**: Shared data hook used by both conversations page and ThreadListDrawer
 
 ## v2 Requirements
 
@@ -72,7 +72,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | DATA-01 | Phase 7 | Complete |
 | DATA-02 | Phase 7 | Complete |
-| DATA-03 | Phase 7 | Pending |
+| DATA-03 | Phase 7 | Complete |
 | LIST-01 | Phase 8 | Pending |
 | LIST-02 | Phase 8 | Pending |
 | LIST-03 | Phase 8 | Pending |

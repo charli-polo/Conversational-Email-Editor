@@ -27,7 +27,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 **Milestone Goal:** Give users a dedicated page to browse, organize, and manage all their saved conversations with free-text tagging and tab-based filtering.
 
-- [ ] **Phase 7: Schema & API Foundation** - Tag tables, joined list query, shared data hook
+- [x] **Phase 7: Schema & API Foundation** - Tag tables, joined list query, shared data hook (completed 2026-04-07)
 - [ ] **Phase 8: Conversation List** - Dedicated page to browse, navigate, rename, and delete conversations
 - [ ] **Phase 9: Tagging System** - Free-text tag creation, assignment, removal, and autocomplete
 - [ ] **Phase 10: Tab Navigation** - All tab plus per-tag tabs for filtering conversations
@@ -46,7 +46,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 Plans:
 - [x] 07-01-PLAN.md — Tag schema, migration, and API rewrite (eliminate N+1)
-- [ ] 07-02-PLAN.md — Shared useConversations hook and ThreadListDrawer refactor
+- [x] 07-02-PLAN.md — Shared useConversations hook and ThreadListDrawer refactor
 
 ### Phase 8: Conversation List
 **Goal**: Users can browse all saved conversations and manage them from a dedicated page
@@ -99,7 +99,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-6 | v1.0 | 20/20 | Complete | 2026-04-06 |
-| 7. Schema & API Foundation | v1.1 | 1/2 | In Progress|  |
+| 7. Schema & API Foundation | v1.1 | 2/2 | Complete   | 2026-04-07 |
 | 8. Conversation List | v1.1 | 0/? | Not started | - |
 | 9. Tagging System | v1.1 | 0/? | Not started | - |
 | 10. Tab Navigation | v1.1 | 0/? | Not started | - |
