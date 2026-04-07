@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useConversations, type ConversationWithTags } from '@/hooks/use-conversations';
+import { useEffect, useState, useCallback } from 'react';
+import { useConversations, type ConversationWithTags, type ConversationTag } from '@/hooks/use-conversations';
 import { ConversationEmptyState } from '@/components/conversations/conversation-empty-state';
 import { ConversationListItem } from '@/components/conversations/conversation-list-item';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,10 +25,22 @@ export function ConversationsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [allTags, setAllTags] = useState<ConversationTag[]>([]);
+
+  const refreshAllTags = useCallback(async () => {
+    try {
+      const res = await fetch(`${basePath}/api/tags`);
+      const data = await res.json();
+      setAllTags(data.tags || []);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+    refreshAllTags();
+  }, [refresh, refreshAllTags]);
 
   const startEditing = (id: string, currentTitle: string | null) => {
     setEditingId(id);
@@ -71,6 +83,56 @@ export function ConversationsPage() {
     setDeletingId(null);
   };
 
+  const handleAssignTag = async (conversationId: string, tagName: string) => {
+    try {
+      const res = await fetch(`${basePath}/api/threads/${conversationId}/tags`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: tagName }),
+      });
+      const data = await res.json();
+
+      if (data.tag) {
+        // Optimistic update: add tag to conversation's local state
+        const conversation = conversations.find((c) => c.id === conversationId);
+        if (conversation) {
+          const alreadyHas = conversation.tags.some((t) => t.id === data.tag.id);
+          if (!alreadyHas) {
+            updateConversation(conversationId, {
+              tags: [...conversation.tags, data.tag],
+            });
+          }
+        }
+
+        // Update allTags if this is a newly created tag
+        if (!allTags.some((t) => t.id === data.tag.id)) {
+          setAllTags((prev) => [...prev, data.tag].sort((a, b) => a.name.localeCompare(b.name)));
+        }
+      }
+    } catch {
+      // silently fail, user can retry
+    }
+  };
+
+  const handleRemoveTag = async (conversationId: string, tagId: string) => {
+    // Optimistic update: remove tag from local state immediately
+    const conversation = conversations.find((c) => c.id === conversationId);
+    if (conversation) {
+      updateConversation(conversationId, {
+        tags: conversation.tags.filter((t) => t.id !== tagId),
+      });
+    }
+
+    try {
+      await fetch(`${basePath}/api/threads/${conversationId}/tags/${tagId}`, {
+        method: 'DELETE',
+      });
+    } catch {
+      // If API fails, refresh to restore correct state
+      refresh();
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <div className="flex items-center justify-between px-6 py-4 border-b">
@@ -109,6 +171,9 @@ export function ConversationsPage() {
                 onSaveEdit={() => saveEdit(c.id)}
                 onCancelEdit={cancelEditing}
                 onDelete={() => setDeletingId(c.id)}
+                allTags={allTags}
+                onAssignTag={(tagName) => handleAssignTag(c.id, tagName)}
+                onRemoveTag={(tagId) => handleRemoveTag(c.id, tagId)}
               />
             ))}
           </div>
