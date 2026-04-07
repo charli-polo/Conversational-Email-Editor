@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useConversations, type ConversationWithTags, type ConversationTag } from '@/hooks/use-conversations';
 import { ConversationEmptyState } from '@/components/conversations/conversation-empty-state';
 import { ConversationListItem } from '@/components/conversations/conversation-list-item';
@@ -15,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { basePath } from '@/lib/base-path';
 import { Plus } from 'lucide-react';
@@ -26,6 +27,21 @@ export function ConversationsPage() {
   const [editValue, setEditValue] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [allTags, setAllTags] = useState<ConversationTag[]>([]);
+  const [activeTab, setActiveTab] = useState('all');
+
+  const filteredConversations = useMemo(() => {
+    if (activeTab === 'all') return conversations;
+    return conversations.filter((c) =>
+      c.tags.some((t) => t.id === activeTab)
+    );
+  }, [conversations, activeTab]);
+
+  // Reset to "all" if active tag disappears from allTags
+  useEffect(() => {
+    if (activeTab !== 'all' && !allTags.some((t) => t.id === activeTab)) {
+      setActiveTab('all');
+    }
+  }, [allTags, activeTab]);
 
   const refreshAllTags = useCallback(async () => {
     try {
@@ -145,6 +161,21 @@ export function ConversationsPage() {
         </a>
       </div>
 
+      {allTags.length > 0 && (
+        <div className="px-6 py-2 border-b">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="w-full justify-start overflow-x-auto">
+              <TabsTrigger value="all">All</TabsTrigger>
+              {allTags.map((tag) => (
+                <TabsTrigger key={tag.id} value={tag.id}>
+                  {tag.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
+
       <ScrollArea className="flex-1">
         {isLoading && conversations.length === 0 && (
           <div className="flex items-center justify-center py-12">
@@ -154,13 +185,19 @@ export function ConversationsPage() {
           </div>
         )}
 
-        {!isLoading && conversations.length === 0 && (
+        {!isLoading && conversations.length === 0 && activeTab === 'all' && (
           <ConversationEmptyState />
         )}
 
-        {conversations.length > 0 && (
+        {!isLoading && filteredConversations.length === 0 && activeTab !== 'all' && (
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            No conversations with this tag
+          </div>
+        )}
+
+        {filteredConversations.length > 0 && (
           <div className="divide-y">
-            {conversations.map((c: ConversationWithTags) => (
+            {filteredConversations.map((c: ConversationWithTags) => (
               <ConversationListItem
                 key={c.id}
                 conversation={c}
