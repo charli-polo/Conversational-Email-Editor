@@ -41,5 +41,11 @@ export function useConversations() {
     setConversations(prev => prev.filter(c => c.id !== id));
   }, []);
 
-  return { conversations, isLoading, refresh, removeConversation };
+  const updateConversation = useCallback((id: string, updates: Partial<ConversationWithTags>) => {
+    setConversations(prev =>
+      prev.map(c => c.id === id ? { ...c, ...updates } : c)
+    );
+  }, []);
+
+  return { conversations, isLoading, refresh, removeConversation, updateConversation };
 }
