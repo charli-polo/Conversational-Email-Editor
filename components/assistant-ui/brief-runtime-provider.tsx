@@ -103,6 +103,9 @@ function createDifyChatAdapter(
       const toolBadges: string[] = [];
       let difyMessageId = '';
 
+      // Initial empty yield so ThinkingIndicator shows while waiting for first chunk
+      yield { content: [{ type: 'text' as const, text: '' }] };
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -136,9 +139,15 @@ function createDifyChatAdapter(
               // Strip <suggested_answer> block from display during streaming
               const { displayText: saCleanText } = parseSuggestedAnswer(displayText);
               let safeDisplay = saCleanText;
+              // Strip partial opening tag at end (e.g. "<suggested_answer" without ">")
               const partialSaMatch = safeDisplay.match(/<suggested_answer[^>]*$/);
               if (partialSaMatch) {
                 safeDisplay = safeDisplay.substring(0, partialSaMatch.index).trim();
+              }
+              // Strip incomplete block (opening tag present but closing tag not yet streamed)
+              const openSaMatch = safeDisplay.match(/<suggested_answer>[\s\S]*$/);
+              if (openSaMatch) {
+                safeDisplay = safeDisplay.substring(0, openSaMatch.index).trim();
               }
 
               yield {
@@ -172,9 +181,15 @@ function createDifyChatAdapter(
                 // Strip <suggested_answer> block from display during streaming
                 const { displayText: saCleanText } = parseSuggestedAnswer(displayText);
                 let safeDisplay = saCleanText;
+                // Strip partial opening tag at end (e.g. "<suggested_answer" without ">")
                 const partialSaMatch = safeDisplay.match(/<suggested_answer[^>]*$/);
                 if (partialSaMatch) {
                   safeDisplay = safeDisplay.substring(0, partialSaMatch.index).trim();
+                }
+                // Strip incomplete block (opening tag present but closing tag not yet streamed)
+                const openSaMatch = safeDisplay.match(/<suggested_answer>[\s\S]*$/);
+                if (openSaMatch) {
+                  safeDisplay = safeDisplay.substring(0, openSaMatch.index).trim();
                 }
 
                 yield {
