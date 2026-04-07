@@ -30,7 +30,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 - [x] **Phase 7: Schema & API Foundation** - Tag tables, joined list query, shared data hook (completed 2026-04-07)
 - [ ] **Phase 8: Conversation List** - Dedicated page to browse, navigate, rename, and delete conversations
 - [ ] **Phase 9: Tagging System** - Free-text tag creation, assignment, removal, and autocomplete
-- [ ] **Phase 10: Tab Navigation** - All tab plus per-tag tabs for filtering conversations
+- [x] **Phase 10: Tab Navigation** - All tab plus per-tag tabs for filtering conversations (completed 2026-04-07)
 
 ## Phase Details
 
@@ -98,10 +98,10 @@ Plans:
   1. An "All" tab is visible and shows every conversation regardless of tags
   2. One tab appears per existing tag, showing only conversations with that tag
   3. User can switch between tabs and the conversation list updates instantly
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 10-01: TBD
+- [x] 10-01-PLAN.md — Tab bar with client-side filtering and E2E tests (TAB-01, TAB-02, TAB-03)
 
 ## Progress
 
@@ -114,8 +114,8 @@ Plans:
 | 8. Conversation List | v1.1 | 0/2 | Planned | - |
 | 8.1 E2E Testing Infrastructure | v1.1 | 0/2 | Planned | - |
 | 9. Tagging System | v1.1 | 0/2 | Planned | - |
-| 10. Tab Navigation | v1.1 | 0/? | Not started | - |
+| 10. Tab Navigation | v1.1 | 1/1 | Complete   | 2026-04-07 |
 
 ---
 *Roadmap created: 2026-03-25*
-*Updated: 2026-04-07 — Phase 9 planned (2 plans)*
+*Updated: 2026-04-07 — Phase 10 planned (1 plan)*

@@ -24,9 +24,9 @@ Requirements for Conversation Management milestone. Each maps to roadmap phases.
 
 ### Tab Navigation
 
-- [ ] **TAB-01**: User can view an "All" tab showing all conversations
-- [ ] **TAB-02**: User can view one tab per existing tag, filtering conversations by that tag
-- [ ] **TAB-03**: User can switch between tabs to filter the conversation list
+- [x] **TAB-01**: User can view an "All" tab showing all conversations
+- [x] **TAB-02**: User can view one tab per existing tag, filtering conversations by that tag
+- [x] **TAB-03**: User can switch between tabs to filter the conversation list
 
 ### Data Layer
 
@@ -82,9 +82,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TAG-02 | Phase 9 | Complete |
 | TAG-03 | Phase 9 | Complete |
 | TAG-04 | Phase 9 | Complete |
-| TAB-01 | Phase 10 | Pending |
-| TAB-02 | Phase 10 | Pending |
-| TAB-03 | Phase 10 | Pending |
+| TAB-01 | Phase 10 | Complete |
+| TAB-02 | Phase 10 | Complete |
+| TAB-03 | Phase 10 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 15 total
