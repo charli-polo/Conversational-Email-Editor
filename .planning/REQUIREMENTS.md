@@ -75,8 +75,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-03 | Phase 7 | Complete |
 | LIST-01 | Phase 8 | Complete |
 | LIST-02 | Phase 8 | Complete |
-| LIST-03 | Phase 8 | Pending |
-| LIST-04 | Phase 8 | Pending |
+| LIST-03 | Phase 8 → 11 (verification) | Pending |
+| LIST-04 | Phase 8 → 11 (verification) | Pending |
 | LIST-05 | Phase 8 | Complete |
 | TAG-01 | Phase 9 | Complete |
 | TAG-02 | Phase 9 | Complete |
