@@ -64,6 +64,17 @@ Plans:
 - [x] 08-01-PLAN.md — Page route, list rendering, empty state (LIST-01, LIST-02, LIST-05)
 - [ ] 08-02-PLAN.md — Inline rename and delete with confirmation (LIST-03, LIST-04)
 
+### Phase 08.1: E2E Testing Infrastructure (INSERTED)
+
+**Goal:** Reliable Playwright E2E testing infrastructure with mocked Dify, DB isolation, and coverage for Phase 6 and Phase 8 features
+**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08
+**Depends on:** Phase 8
+**Plans:** 2 plans
+
+Plans:
+- [ ] 08.1-01-PLAN.md — Playwright config (webServer, globalSetup), test helpers, fix Phase 6 tests
+- [ ] 08.1-02-PLAN.md — Phase 8 E2E tests (LIST-01 through LIST-05)
+
 ### Phase 9: Tagging System
 **Goal**: Users can organize conversations with free-text tags
 **Depends on**: Phase 8
@@ -94,16 +105,17 @@ Plans:
 
 ## Progress
 
-**Execution Order:** Phases execute in numeric order: 7 -> 8 -> 9 -> 10
+**Execution Order:** Phases execute in numeric order: 7 -> 8 -> 8.1 -> 9 -> 10
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-6 | v1.0 | 20/20 | Complete | 2026-04-06 |
 | 7. Schema & API Foundation | v1.1 | 2/2 | Complete   | 2026-04-07 |
 | 8. Conversation List | v1.1 | 0/2 | Planned | - |
+| 8.1 E2E Testing Infrastructure | v1.1 | 0/2 | Planned | - |
 | 9. Tagging System | v1.1 | 0/? | Not started | - |
 | 10. Tab Navigation | v1.1 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-03-25*
-*Updated: 2026-04-07 — Phase 8 planned (2 plans)*
+*Updated: 2026-04-07 — Phase 08.1 planned (2 plans)*
