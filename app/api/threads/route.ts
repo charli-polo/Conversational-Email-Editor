@@ -1,49 +1,74 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { conversations, agents, messages } from '@/lib/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { conversations, agents, messages, tags, conversationTags } from '@/lib/db/schema';
+import { desc, eq, sql } from 'drizzle-orm';
 
 export async function GET() {
   try {
+    // Query 1: All conversations with first-message preview via correlated subquery
     const allThreads = await db
-      .select()
+      .select({
+        id: conversations.id,
+        title: conversations.title,
+        agentId: conversations.agentId,
+        agentConfigSnapshot: conversations.agentConfigSnapshot,
+        isArchived: conversations.isArchived,
+        createdAt: conversations.createdAt,
+        updatedAt: conversations.updatedAt,
+        preview: sql<string | null>`(
+          SELECT content FROM messages
+          WHERE messages.conversation_id = ${conversations.id}
+          ORDER BY messages.created_at ASC
+          LIMIT 1
+        )`.as('preview'),
+      })
       .from(conversations)
       .orderBy(desc(conversations.updatedAt));
 
-    // Get first user message for each thread as preview
-    const threadsWithPreview = await Promise.all(
-      allThreads.map(async (thread) => {
-        const firstMessage = await db
-          .select({ content: messages.content })
-          .from(messages)
-          .where(eq(messages.conversationId, thread.id))
-          .orderBy(messages.createdAt)
-          .limit(1);
-
-        let agent_label: string | null = null;
-        if (thread.agentConfigSnapshot) {
-          try {
-            const snapshot = JSON.parse(thread.agentConfigSnapshot);
-            agent_label = snapshot.label ?? null;
-          } catch {
-            agent_label = null;
-          }
-        }
-
-        return {
-          id: thread.id,
-          title: thread.title,
-          is_archived: thread.isArchived,
-          agent_id: thread.agentId,
-          agent_label,
-          created_at: thread.createdAt,
-          updated_at: thread.updatedAt,
-          preview: firstMessage.length > 0 ? firstMessage[0].content : null,
-        };
+    // Query 2: All tags for all conversations (single query, not N+1)
+    const allConvTags = await db
+      .select({
+        conversationId: conversationTags.conversationId,
+        tagId: tags.id,
+        tagName: tags.name,
       })
-    );
+      .from(conversationTags)
+      .innerJoin(tags, eq(conversationTags.tagId, tags.id));
 
-    return NextResponse.json({ threads: threadsWithPreview });
+    // Group tags by conversationId
+    const tagMap = new Map<string, { id: string; name: string }[]>();
+    for (const row of allConvTags) {
+      const arr = tagMap.get(row.conversationId) || [];
+      arr.push({ id: row.tagId, name: row.tagName });
+      tagMap.set(row.conversationId, arr);
+    }
+
+    // Build response
+    const threadsWithTags = allThreads.map((thread) => {
+      let agent_label: string | null = null;
+      if (thread.agentConfigSnapshot) {
+        try {
+          const snapshot = JSON.parse(thread.agentConfigSnapshot);
+          agent_label = snapshot.label ?? null;
+        } catch {
+          agent_label = null;
+        }
+      }
+
+      return {
+        id: thread.id,
+        title: thread.title,
+        is_archived: thread.isArchived,
+        agent_id: thread.agentId,
+        agent_label,
+        created_at: thread.createdAt,
+        updated_at: thread.updatedAt,
+        preview: thread.preview,
+        tags: tagMap.get(thread.id) || [],
+      };
+    });
+
+    return NextResponse.json({ threads: threadsWithTags });
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch threads' },
