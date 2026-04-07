@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Conversation Management
 status: unknown
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-04-07T05:39:49.913Z"
+stopped_at: Completed 08.1-01-PLAN.md
+last_updated: "2026-04-07T07:50:10.540Z"
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 08 (conversation-list) — EXECUTING
+Phase: 08.1 (e2e-testing-infrastructure) — EXECUTING
 Plan: 2 of 2
 
 ## Project Reference
@@ -24,7 +24,7 @@ Plan: 2 of 2
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** Two-step AI conversational flow — brief then edit
-**Current focus:** Phase 08 — conversation-list
+**Current focus:** Phase 08.1 — e2e-testing-infrastructure
 
 ## Milestone: v1.1 — Conversation Management
 
@@ -62,6 +62,12 @@ for v1.1.
 - [Phase 07-schema-api-foundation]: 2-query approach over single LEFT JOIN to avoid cartesian product with tags
 - [Phase 07]: No useEffect inside useConversations hook -- consumers decide when to refresh for flexibility
 - [Phase 08-conversation-list]: useEffect refresh-on-mount keeps consumer-driven pattern from Phase 7
+- [Phase 08.1]: Exact match for Save button selector to avoid collision with Saved conversations drawer
+- [Phase 08.1]: Opener text in ThreadWelcome div, not data-role=assistant -- use getByText for opener tests
+
+### Roadmap Evolution
+
+- Phase 08.1 inserted after Phase 08: E2E Testing Infrastructure (URGENT)
 
 ### Blockers/Concerns
 
@@ -69,8 +75,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T05:39:49.910Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-04-07T07:50:10.537Z
+Stopped at: Completed 08.1-01-PLAN.md
 Resume file: None
 
 ---
