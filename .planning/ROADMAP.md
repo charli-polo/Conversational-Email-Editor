@@ -88,7 +88,7 @@ Plans:
 
 Plans:
 - [x] 09-01-PLAN.md — Tag API endpoints (assign/remove) + shadcn Popover/Command + TagPopover component
-- [ ] 09-02-PLAN.md — Wire tag display, add/remove into ConversationListItem and ConversationsPage
+- [x] 09-02-PLAN.md — Wire tag display, add/remove into ConversationListItem and ConversationsPage
 
 ### Phase 10: Tab Navigation
 **Goal**: Users can filter the conversation list by tag using a tab bar

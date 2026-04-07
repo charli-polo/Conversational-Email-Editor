@@ -19,7 +19,7 @@ Requirements for Conversation Management milestone. Each maps to roadmap phases.
 
 - [x] **TAG-01**: User can create free-text tags and assign them to conversations
 - [x] **TAG-02**: User can remove tags from a conversation
-- [ ] **TAG-03**: User can see tags displayed on each conversation in the list
+- [x] **TAG-03**: User can see tags displayed on each conversation in the list
 - [x] **TAG-04**: User sees autocomplete suggestions from existing tags when adding a tag
 
 ### Tab Navigation
@@ -80,7 +80,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LIST-05 | Phase 8 | Complete |
 | TAG-01 | Phase 9 | Complete |
 | TAG-02 | Phase 9 | Complete |
-| TAG-03 | Phase 9 | Pending |
+| TAG-03 | Phase 9 | Complete |
 | TAG-04 | Phase 9 | Complete |
 | TAB-01 | Phase 10 | Pending |
 | TAB-02 | Phase 10 | Pending |
