@@ -56,10 +56,10 @@ See phase details in `.planning/milestones/v1.1-ROADMAP.md` for full history.
   1. A pure parsing function extracts the JSON actions array from a `<suggested_answer>` block in message text
   2. The returned message text has the `<suggested_answer>` block completely removed (user sees clean markdown only)
   3. Messages without a `<suggested_answer>` block pass through unchanged with no actions extracted
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 13-01: Parser function, unit tests, integration into ChatModelAdapter stream processing
+- [ ] 13-01-PLAN.md — Parser function with TDD, adapter streaming integration
 
 ### Phase 14: Suggested Answer UI
 **Goal**: Users can see and click suggested answer chips to send follow-up messages with one click
@@ -89,4 +89,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-03-25*
-*Updated: 2026-04-07 — v1.2 Suggested Answers milestone added (Phases 13-14)*
+*Updated: 2026-04-07 — Phase 13 planned (1 plan)*
