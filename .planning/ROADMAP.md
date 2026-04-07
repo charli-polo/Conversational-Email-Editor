@@ -116,7 +116,7 @@ Plans:
 
 Plans:
 - [x] 11-01-PLAN.md — Navigation link + stale tab fix (code changes)
-- [ ] 11-02-PLAN.md — Phase 8 verification trail (08-02-SUMMARY.md + 08-VERIFICATION.md)
+- [x] 11-02-PLAN.md — Phase 8 verification trail (08-02-SUMMARY.md + 08-VERIFICATION.md)
 
 ### Phase 12: Regression Test Suite
 **Goal**: E2E smoke tests for every app route plus critical path coverage — catch route-level regressions like the /settings bug
@@ -143,7 +143,7 @@ Plans:
 | 8.1 E2E Testing Infrastructure | v1.1 | 0/2 | Planned | - |
 | 9. Tagging System | v1.1 | 0/2 | Planned | - |
 | 10. Tab Navigation | v1.1 | 1/1 | Complete    | 2026-04-07 |
-| 11. Navigation & Verification | v1.1 | 1/2 | In Progress|  |
+| 11. Navigation & Verification | v1.1 | 2/2 | Complete   | 2026-04-07 |
 | 12. Regression Test Suite | v1.1 | 0/0 | Planned | - |
 
 ---
