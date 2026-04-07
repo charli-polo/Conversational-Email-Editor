@@ -58,11 +58,11 @@ Plans:
   3. User can rename a conversation inline without leaving the list page
   4. User can delete a conversation after confirming, and it disappears from the list
   5. User sees a helpful empty state when no conversations exist
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md — Page route, list rendering, empty state (LIST-01, LIST-02, LIST-05)
+- [ ] 08-02-PLAN.md — Inline rename and delete with confirmation (LIST-03, LIST-04)
 
 ### Phase 9: Tagging System
 **Goal**: Users can organize conversations with free-text tags
@@ -100,10 +100,10 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-6 | v1.0 | 20/20 | Complete | 2026-04-06 |
 | 7. Schema & API Foundation | v1.1 | 2/2 | Complete   | 2026-04-07 |
-| 8. Conversation List | v1.1 | 0/? | Not started | - |
+| 8. Conversation List | v1.1 | 0/2 | Planned | - |
 | 9. Tagging System | v1.1 | 0/? | Not started | - |
 | 10. Tab Navigation | v1.1 | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-03-25*
-*Updated: 2026-04-07 — Phase 7 planned (2 plans)*
+*Updated: 2026-04-07 — Phase 8 planned (2 plans)*
