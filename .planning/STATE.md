@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Conversation Management
 status: unknown
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-04-07T11:54:05.746Z"
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-04-07T15:26:51.887Z"
 progress:
   total_phases: 7
   completed_phases: 7
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 14
+  completed_plans: 14
 ---
 
 # Project State
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 12 (regression-test-suite) — EXECUTING
-Plan: 2 of 2
+Plan: 2 of 3
 
 ## Project Reference
 
@@ -76,6 +76,9 @@ for v1.1.
 - [Phase 11]: Used 10-VERIFICATION.md as template for consistent verification report format
 - [Phase 12]: No bug found on /settings -- page loads correctly, smoke tests added as regression baseline
 - [Phase 12]: Used unique conversation names to avoid Playwright getByText substring collisions in regression spec
+- [Phase 12]: API-based resetDatabase over direct SQLite truncation -- simpler, works through running server
+- [Phase 12]: workers:1 in playwright.config.ts required for shared SQLite DB to prevent parallel spec contention
+- [Phase 12]: TAB-03b rewritten for Phase 11 reactive tabs -- original tested impossible orphan-tag behavior
 
 ### Roadmap Evolution
 
@@ -87,8 +90,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-07T11:54:05.743Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-04-07T15:26:51.883Z
+Stopped at: Completed 12-03-PLAN.md
 Resume file: None
 
 ---
