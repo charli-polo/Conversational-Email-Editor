@@ -8,6 +8,7 @@ export default defineConfig({
   timeout: 120000,
   expect: { timeout: 15000 },
   retries: 0,
+  workers: 1,
   globalSetup: './__tests__/global-setup.ts',
   globalTeardown: './__tests__/global-teardown.ts',
   use: {

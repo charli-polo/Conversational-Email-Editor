@@ -8,12 +8,13 @@
  * Tests within this spec share DB state (clean DB per spec file via globalSetup).
  */
 import { test, expect } from '@playwright/test';
-import { seedConversation } from './fixtures/test-helpers';
+import { seedConversation, resetDatabase } from './fixtures/test-helpers';
 
 test.describe.serial('Phase 8: Conversation List', () => {
 
   test.describe('LIST-05: Empty state', () => {
-    test('shows empty state when no conversations exist', async ({ page }) => {
+    test('shows empty state when no conversations exist', async ({ page, request }) => {
+      await resetDatabase(request);
       await page.goto('/conversations');
       await expect(page.getByText('No conversations yet')).toBeVisible({ timeout: 10000 });
       await expect(page.getByText('Start a new conversation from the brief page')).toBeVisible();

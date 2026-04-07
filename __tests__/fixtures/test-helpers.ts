@@ -57,3 +57,31 @@ export async function seedConversation(request: APIRequestContext, title?: strin
   }
   return id;
 }
+
+/** Reset test database by deleting all seeded data via API calls */
+export async function resetDatabase(request: APIRequestContext): Promise<void> {
+  // Delete all conversations (cascades to messages + conversation_tags)
+  const threadsRes = await request.get('/api/threads');
+  const threadsBody = await threadsRes.json();
+  const threads = threadsBody.threads ?? threadsBody ?? [];
+  for (const thread of threads) {
+    await request.delete(`/api/threads/${thread.id}`);
+  }
+
+  // Delete all agents
+  const agentsRes = await request.get('/api/agents');
+  const agentsList = await agentsRes.json();
+  if (Array.isArray(agentsList)) {
+    for (const agent of agentsList) {
+      await request.delete(`/api/agents/${agent.id}`);
+    }
+  }
+
+  // Verify cleanup succeeded
+  const verifyRes = await request.get('/api/threads');
+  const verifyBody = await verifyRes.json();
+  const remaining = verifyBody.threads ?? verifyBody ?? [];
+  if (remaining.length > 0) {
+    throw new Error(`resetDatabase failed: ${remaining.length} threads still exist`);
+  }
+}
