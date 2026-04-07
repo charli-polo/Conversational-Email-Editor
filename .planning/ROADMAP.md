@@ -129,7 +129,11 @@ Plans:
   3. Every app route (/, /conversations, /c/[id], /editor, /settings) has at least a smoke E2E test
   4. A single `npm test` or `npx playwright test` command runs the full regression suite
   5. The /settings bug is diagnosed and fixed
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Diagnose and fix /settings bug, verify /editor loads
+- [ ] 12-02-PLAN.md — E2E regression suite with all 7 critical flows
 
 ## Progress
 
@@ -143,9 +147,9 @@ Plans:
 | 8.1 E2E Testing Infrastructure | v1.1 | 0/2 | Planned | - |
 | 9. Tagging System | v1.1 | 0/2 | Planned | - |
 | 10. Tab Navigation | v1.1 | 1/1 | Complete    | 2026-04-07 |
-| 11. Navigation & Verification | v1.1 | 2/2 | Complete   | 2026-04-07 |
-| 12. Regression Test Suite | v1.1 | 0/0 | Planned | - |
+| 11. Navigation & Verification | v1.1 | 2/2 | Complete    | 2026-04-07 |
+| 12. Regression Test Suite | v1.1 | 0/2 | Planned | - |
 
 ---
 *Roadmap created: 2026-03-25*
-*Updated: 2026-04-07 — Phase 11 planned: 2 plans in 1 wave*
+*Updated: 2026-04-07 — Phase 12 planned: 2 plans in 2 waves*
