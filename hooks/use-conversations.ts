@@ -14,6 +14,7 @@ export interface ConversationWithTags {
   preview: string | null;
   agent_label: string | null;
   agent_id: string | null;
+  agent_url: string | null;
   is_archived: boolean;
   tags: ConversationTag[];
   created_at: string;

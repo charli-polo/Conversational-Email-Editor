@@ -46,10 +46,12 @@ export async function GET() {
     // Build response
     const threadsWithTags = allThreads.map((thread) => {
       let agent_label: string | null = null;
+      let agent_url: string | null = null;
       if (thread.agentConfigSnapshot) {
         try {
           const snapshot = JSON.parse(thread.agentConfigSnapshot);
           agent_label = snapshot.label ?? null;
+          agent_url = snapshot.difyUrl ?? null;
         } catch {
           agent_label = null;
         }
@@ -61,6 +63,7 @@ export async function GET() {
         is_archived: thread.isArchived,
         agent_id: thread.agentId,
         agent_label,
+        agent_url,
         created_at: thread.createdAt,
         updated_at: thread.updatedAt,
         preview: thread.preview,

@@ -4,6 +4,7 @@ import type { ConversationWithTags, ConversationTag } from '@/hooks/use-conversa
 import { Badge } from '@/components/ui/badge';
 import { TagPopover } from '@/components/conversations/tag-popover';
 import { basePath } from '@/lib/base-path';
+import { useRouter } from 'next/navigation';
 import { Pencil, Trash2, Plus, X } from 'lucide-react';
 
 interface ConversationListItemProps {
@@ -33,9 +34,13 @@ export function ConversationListItem({
   onAssignTag,
   onRemoveTag,
 }: ConversationListItemProps) {
+  const router = useRouter();
   return (
     <div className="group flex items-center gap-3 px-6 py-4 hover:bg-accent/50 transition-colors">
-      <a href={basePath + '/c/' + conversation.id} className="flex-1 min-w-0">
+      <div
+        className="flex-1 min-w-0 cursor-pointer"
+        onClick={() => router.push(basePath + '/c/' + conversation.id)}
+      >
         {isEditing ? (
           <input
             autoFocus
@@ -56,9 +61,22 @@ export function ConversationListItem({
         )}
         <div className="flex items-center gap-2 mt-1 flex-wrap">
           {conversation.agent_label && (
-            <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
-              {conversation.agent_label}
-            </Badge>
+            conversation.agent_url ? (
+              <a
+                href={conversation.agent_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 hover:bg-primary/20 cursor-pointer">
+                  {conversation.agent_label}
+                </Badge>
+              </a>
+            ) : (
+              <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
+                {conversation.agent_label}
+              </Badge>
+            )
           )}
           <span className="text-xs text-muted-foreground">
             {new Date(conversation.updated_at).toLocaleDateString()}
@@ -78,7 +96,7 @@ export function ConversationListItem({
         {conversation.preview && (
           <p className="text-xs text-muted-foreground mt-1 truncate">{conversation.preview}</p>
         )}
-      </a>
+      </div>
 
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <TagPopover
