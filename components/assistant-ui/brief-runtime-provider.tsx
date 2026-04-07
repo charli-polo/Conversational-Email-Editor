@@ -5,6 +5,7 @@ import { AssistantRuntimeProvider, useLocalRuntime } from '@assistant-ui/react';
 import type { ChatModelAdapter, ChatModelRunOptions } from '@assistant-ui/react';
 import { basePath } from '@/lib/base-path';
 import { createDifyAttachmentAdapter, createDifyFeedbackAdapter } from '@/lib/dify/adapters';
+import { parseSuggestedAnswer } from '@/lib/dify/parse-suggested-answer';
 
 // ---------------------------------------------------------------------------
 // Dify params context (opener, suggested questions, file upload config)
@@ -132,10 +133,18 @@ function createDifyChatAdapter(
                 displayText = displayText.replace('[BRIEF_COMPLETE]', '').trim();
               }
 
+              // Strip <suggested_answer> block from display during streaming
+              const { displayText: saCleanText } = parseSuggestedAnswer(displayText);
+              let safeDisplay = saCleanText;
+              const partialSaMatch = safeDisplay.match(/<suggested_answer[^>]*$/);
+              if (partialSaMatch) {
+                safeDisplay = safeDisplay.substring(0, partialSaMatch.index).trim();
+              }
+
               yield {
                 content: [
                   ...(reasoningText ? [{ type: 'reasoning' as const, text: reasoningText }] : []),
-                  { type: 'text' as const, text: displayText },
+                  { type: 'text' as const, text: safeDisplay },
                 ],
               };
               continue;
@@ -160,10 +169,18 @@ function createDifyChatAdapter(
                   onBriefContentRef.current?.(briefInner.trim());
                 }
 
+                // Strip <suggested_answer> block from display during streaming
+                const { displayText: saCleanText } = parseSuggestedAnswer(displayText);
+                let safeDisplay = saCleanText;
+                const partialSaMatch = safeDisplay.match(/<suggested_answer[^>]*$/);
+                if (partialSaMatch) {
+                  safeDisplay = safeDisplay.substring(0, partialSaMatch.index).trim();
+                }
+
                 yield {
                   content: [
                     ...(reasoningText ? [{ type: 'reasoning' as const, text: reasoningText }] : []),
-                    { type: 'text' as const, text: displayText },
+                    { type: 'text' as const, text: safeDisplay },
                   ],
                 };
               }
@@ -199,15 +216,19 @@ function createDifyChatAdapter(
         finalDisplayText = finalDisplayText.replace('[BRIEF_COMPLETE]', '').trim();
       }
 
+      // Parse <suggested_answer> from final text and attach actions as metadata
+      const { displayText: finalSaClean, actions: suggestedActions } = parseSuggestedAnswer(finalDisplayText);
+
       yield {
         content: [
           ...(reasoningText ? [{ type: 'reasoning' as const, text: reasoningText }] : []),
-          { type: 'text' as const, text: finalDisplayText },
+          { type: 'text' as const, text: finalSaClean },
         ],
         metadata: {
           custom: {
             difyMessageId,
             toolBadges,
+            suggestedActions,
           },
         },
       };
