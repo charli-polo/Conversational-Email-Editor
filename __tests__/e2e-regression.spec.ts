@@ -1,7 +1,7 @@
 /**
  * E2E Regression Test Suite
  *
- * Canonical safety-net covering all 7 critical flows defined in Phase 12.
+ * Canonical safety-net covering all 8 critical flows defined in Phase 12.
  * Run after every future phase to catch cross-feature breakage.
  *
  * Flows covered:
@@ -9,9 +9,10 @@
  *   2. Rename conversation + verify new name
  *   3. Tag conversation, tab appears, filter works
  *   4. Delete last tagged conversation removes stale tab (Phase 11 fix)
- *   5. Nav link from brief page to /conversations
- *   6. /settings page loads + agent CRUD
- *   7. /editor page loads without error
+ *   5. /c/[id] conversation detail page loads
+ *   6. Nav link from brief page to /conversations
+ *   7. /settings page loads + agent CRUD
+ *   8. /editor page loads without error
  *
  * Each describe block seeds its own data independently (D-05/D-06).
  */
@@ -111,7 +112,26 @@ test.describe('Tagging and Tab Filtering', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 5: Navigation
+// 5: Conversation Detail Page (/c/[id])
+// ---------------------------------------------------------------------------
+test.describe('Conversation Detail Page', () => {
+  test('/c/[id] loads and shows conversation', async ({ page, request }) => {
+    await setupDifyMocks(page);
+    const id = await seedConversation(request, 'Detail Page Test');
+
+    await page.goto(`/c/${id}`);
+    await page.waitForLoadState('networkidle');
+
+    // Page should render the "Email Brief" heading
+    await expect(page.getByRole('heading', { name: 'Email Brief' })).toBeVisible({ timeout: 15000 });
+
+    // The conversation title should appear in the header
+    await expect(page.getByText('Detail Page Test')).toBeVisible({ timeout: 10000 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 6: Navigation (brief -> conversations)
 // ---------------------------------------------------------------------------
 test.describe('Navigation', () => {
   test('nav link from brief page to /conversations', async ({ page }) => {
@@ -130,7 +150,7 @@ test.describe('Navigation', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 6: Settings Page
+// 7: Settings Page
 // ---------------------------------------------------------------------------
 test.describe('Settings Page', () => {
   test('settings page loads and shows tabs', async ({ page }) => {
@@ -161,7 +181,7 @@ test.describe('Settings Page', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 7: Editor Page
+// 8: Editor Page
 // ---------------------------------------------------------------------------
 test.describe('Editor Page', () => {
   test('editor page loads without error', async ({ page }) => {
