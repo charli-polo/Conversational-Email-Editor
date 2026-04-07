@@ -71,10 +71,10 @@ Plans:
   3. Clicking an action button sends the action's prompt as the user's next chat message
   4. After clicking any action, all suggested answer buttons for that message disappear
   5. Messages without suggested answers render normally with no extra UI elements
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 14-01: SuggestedAnswerChips component, BriefMessage integration, click handler wiring, E2E tests
+- [ ] 14-01-PLAN.md — SuggestedAnswerChips component, BriefThread integration, unit tests, visual verification
 
 ## Progress
 
@@ -84,9 +84,9 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-6 | v1.0 | 20/20 | Complete | 2026-04-06 |
 | 7-12 | v1.1 | 12/12 | Complete | 2026-04-07 |
-| 13. Suggested Answer Parsing | v1.2 | 1/1 | Complete   | 2026-04-07 |
+| 13. Suggested Answer Parsing | v1.2 | 1/1 | Complete    | 2026-04-07 |
 | 14. Suggested Answer UI | v1.2 | 0/1 | Not started | - |
 
 ---
 *Roadmap created: 2026-03-25*
-*Updated: 2026-04-07 — Phase 13 planned (1 plan)*
+*Updated: 2026-04-07 — Phase 14 planned (1 plan)*

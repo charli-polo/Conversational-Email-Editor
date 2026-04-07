@@ -31,9 +31,11 @@ Two-step conversational flow: brief collection via AI agent, then email editing 
 
 ### Active
 
-- [ ] Parse and render suggested answer actions from Dify agent — v1.2
+- [ ] Render suggested answer actions as clickable UI buttons — v1.2
 
 ### Recently Validated
+
+- Parse `<suggested_answer>` blocks from Dify SSE, strip from display, pass actions via metadata — v1.2 Phase 13
 
 - Tag schema (tags + conversationTags tables) with cascade deletes — v1.1 Phase 7
 - Threads API rewritten with 2-query join (no N+1) returning tags inline — v1.1 Phase 7
@@ -113,4 +115,4 @@ Last updated: 2026-04-07
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after milestone v1.2 Suggested Answers started*
+*Last updated: 2026-04-07 after Phase 13 (suggested answer parsing) complete*
