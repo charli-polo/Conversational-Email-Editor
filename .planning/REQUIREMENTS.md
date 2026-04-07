@@ -40,9 +40,9 @@ Requirements for Suggested Answers milestone.
 
 ### Parsing
 
-- [ ] **PARSE-01**: System extracts `<suggested_answer>` JSON block from Dify agent message text
-- [ ] **PARSE-02**: System strips the `<suggested_answer>` block from the displayed message (user sees clean text only)
-- [ ] **PARSE-03**: System handles messages with no `<suggested_answer>` block gracefully (no UI change)
+- [x] **PARSE-01**: System extracts `<suggested_answer>` JSON block from Dify agent message text
+- [x] **PARSE-02**: System strips the `<suggested_answer>` block from the displayed message (user sees clean text only)
+- [x] **PARSE-03**: System handles messages with no `<suggested_answer>` block gracefully (no UI change)
 
 ### Rendering
 
@@ -106,9 +106,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TAB-01 | Phase 10 | Complete |
 | TAB-02 | Phase 10 | Complete |
 | TAB-03 | Phase 10 | Complete |
-| PARSE-01 | Phase 13 | Pending |
-| PARSE-02 | Phase 13 | Pending |
-| PARSE-03 | Phase 13 | Pending |
+| PARSE-01 | Phase 13 | Complete |
+| PARSE-02 | Phase 13 | Complete |
+| PARSE-03 | Phase 13 | Complete |
 | RENDER-01 | Phase 14 | Pending |
 | RENDER-02 | Phase 14 | Pending |
 | RENDER-03 | Phase 14 | Pending |

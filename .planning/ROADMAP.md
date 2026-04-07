@@ -43,7 +43,7 @@ See phase details in `.planning/milestones/v1.1-ROADMAP.md` for full history.
 
 **Milestone Goal:** Render clickable action buttons in the chat when the Dify agent sends a `<suggested_answer>` JSON block, enabling one-click responses that send the action's prompt as the user's next message.
 
-- [ ] **Phase 13: Suggested Answer Parsing** - Extract, validate, and strip `<suggested_answer>` JSON blocks from agent messages
+- [x] **Phase 13: Suggested Answer Parsing** - Extract, validate, and strip `<suggested_answer>` JSON blocks from agent messages (completed 2026-04-07)
 - [ ] **Phase 14: Suggested Answer UI** - Render action chips below assistant messages with click-to-send and auto-dismiss
 
 ## Phase Details
@@ -56,10 +56,10 @@ See phase details in `.planning/milestones/v1.1-ROADMAP.md` for full history.
   1. A pure parsing function extracts the JSON actions array from a `<suggested_answer>` block in message text
   2. The returned message text has the `<suggested_answer>` block completely removed (user sees clean markdown only)
   3. Messages without a `<suggested_answer>` block pass through unchanged with no actions extracted
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 13-01-PLAN.md — Parser function with TDD, adapter streaming integration
+- [x] 13-01-PLAN.md — Parser function with TDD, adapter streaming integration
 
 ### Phase 14: Suggested Answer UI
 **Goal**: Users can see and click suggested answer chips to send follow-up messages with one click
@@ -84,7 +84,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-6 | v1.0 | 20/20 | Complete | 2026-04-06 |
 | 7-12 | v1.1 | 12/12 | Complete | 2026-04-07 |
-| 13. Suggested Answer Parsing | v1.2 | 0/1 | Not started | - |
+| 13. Suggested Answer Parsing | v1.2 | 1/1 | Complete   | 2026-04-07 |
 | 14. Suggested Answer UI | v1.2 | 0/1 | Not started | - |
 
 ---
