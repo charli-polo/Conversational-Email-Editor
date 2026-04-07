@@ -216,11 +216,8 @@ function createDifyChatAdapter(
         finalDisplayText = finalDisplayText.replace('[BRIEF_COMPLETE]', '').trim();
       }
 
-      // Parse <suggested_answer> from rawText BEFORE Brief stripping
-      // (the block may be inside <Brief> tags)
-      const { actions: suggestedActions } = parseSuggestedAnswer(rawText);
-      // Strip <suggested_answer> from display text (already Brief-stripped)
-      const { displayText: finalSaClean } = parseSuggestedAnswer(finalDisplayText);
+      // Parse <suggested_answer> from final text and attach actions as metadata
+      const { displayText: finalSaClean, actions: suggestedActions } = parseSuggestedAnswer(finalDisplayText);
 
       yield {
         content: [

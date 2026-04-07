@@ -32,18 +32,21 @@ export function parseSuggestedAnswer(text: string): ParseResult {
     .replace(/<suggested_answer>[\s\S]*?<\/suggested_answer>/, '')
     .trim();
 
-  // Parse the JSON content
+  // Parse the JSON content — supports both raw array and {actions:[...]} wrapper
   try {
     const parsed = JSON.parse(match[1].trim());
-    const actions: SuggestedAction[] = Array.isArray(parsed)
-      ? parsed.filter(
-          (item: unknown): item is SuggestedAction =>
-            typeof item === 'object' &&
-            item !== null &&
-            typeof (item as Record<string, unknown>).label === 'string' &&
-            typeof (item as Record<string, unknown>).prompt === 'string',
-        )
-      : [];
+    const rawActions = Array.isArray(parsed)
+      ? parsed
+      : Array.isArray((parsed as Record<string, unknown>)?.actions)
+        ? (parsed as Record<string, unknown>).actions as unknown[]
+        : [];
+    const actions: SuggestedAction[] = rawActions.filter(
+      (item: unknown): item is SuggestedAction =>
+        typeof item === 'object' &&
+        item !== null &&
+        typeof (item as Record<string, unknown>).label === 'string' &&
+        typeof (item as Record<string, unknown>).prompt === 'string',
+    );
     return { displayText, actions };
   } catch {
     // Malformed JSON -- strip the block but return no actions

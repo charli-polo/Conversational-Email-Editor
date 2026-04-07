@@ -73,4 +73,21 @@ describe('parseSuggestedAnswer', () => {
       { label: 'C', prompt: 'PC' },
     ]);
   });
+
+  it('extracts actions from {answer, actions} wrapper format', () => {
+    const input = 'Question?\n<suggested_answer>\n{"answer":"Pick one","actions":[{"label":"A","prompt":"PA"},{"label":"B","prompt":"PB"}]}\n</suggested_answer>';
+    const result = parseSuggestedAnswer(input);
+    expect(result.displayText).toBe('Question?');
+    expect(result.actions).toEqual([
+      { label: 'A', prompt: 'PA' },
+      { label: 'B', prompt: 'PB' },
+    ]);
+  });
+
+  it('returns empty actions for wrapper object with no actions array', () => {
+    const input = 'Text\n<suggested_answer>{"answer":"Pick one"}</suggested_answer>';
+    const result = parseSuggestedAnswer(input);
+    expect(result.displayText).toBe('Text');
+    expect(result.actions).toEqual([]);
+  });
 });
