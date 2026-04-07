@@ -36,12 +36,24 @@ export function ConversationsPage() {
     );
   }, [conversations, activeTab]);
 
-  // Reset to "all" if active tag disappears from allTags
+  const visibleTabs = useMemo(() => {
+    const tagMap = new Map<string, ConversationTag>();
+    for (const c of conversations) {
+      for (const t of c.tags) {
+        if (!tagMap.has(t.id)) {
+          tagMap.set(t.id, t);
+        }
+      }
+    }
+    return Array.from(tagMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [conversations]);
+
+  // Reset to "all" if active tag disappears from visible tabs
   useEffect(() => {
-    if (activeTab !== 'all' && !allTags.some((t) => t.id === activeTab)) {
+    if (activeTab !== 'all' && !visibleTabs.some((t) => t.id === activeTab)) {
       setActiveTab('all');
     }
-  }, [allTags, activeTab]);
+  }, [visibleTabs, activeTab]);
 
   const refreshAllTags = useCallback(async () => {
     try {
@@ -161,12 +173,12 @@ export function ConversationsPage() {
         </a>
       </div>
 
-      {allTags.length > 0 && (
+      {visibleTabs.length > 0 && (
         <div className="px-6 py-2 border-b">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full justify-start overflow-x-auto">
               <TabsTrigger value="all">All</TabsTrigger>
-              {allTags.map((tag) => (
+              {visibleTabs.map((tag) => (
                 <TabsTrigger key={tag.id} value={tag.id}>
                   {tag.name}
                 </TabsTrigger>
