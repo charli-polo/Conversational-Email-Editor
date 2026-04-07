@@ -1,10 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useConversations, type ConversationWithTags } from '@/hooks/use-conversations';
 import { ConversationEmptyState } from '@/components/conversations/conversation-empty-state';
+import { ConversationListItem } from '@/components/conversations/conversation-list-item';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { basePath } from '@/lib/base-path';
 import { Plus } from 'lucide-react';
@@ -12,9 +22,54 @@ import { Plus } from 'lucide-react';
 export function ConversationsPage() {
   const { conversations, isLoading, refresh, removeConversation, updateConversation } = useConversations();
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  const startEditing = (id: string, currentTitle: string | null) => {
+    setEditingId(id);
+    setEditValue(currentTitle || '');
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const saveEdit = async (id: string) => {
+    const trimmed = editValue.trim();
+    if (!trimmed) {
+      cancelEditing();
+      return;
+    }
+    try {
+      await fetch(`${basePath}/api/threads/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: trimmed }),
+      });
+      updateConversation(id, { title: trimmed });
+    } catch {
+      // silently fail, user can retry
+    }
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingId) return;
+    try {
+      await fetch(`${basePath}/api/threads/${deletingId}`, { method: 'DELETE' });
+      removeConversation(deletingId);
+    } catch {
+      // silently fail
+    }
+    setDeletingId(null);
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -44,32 +99,38 @@ export function ConversationsPage() {
         {conversations.length > 0 && (
           <div className="divide-y">
             {conversations.map((c: ConversationWithTags) => (
-              <div key={c.id} className="group flex items-center gap-3 px-6 py-4 hover:bg-accent/50 transition-colors">
-                <a href={`${basePath}/c/${c.id}`} className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium truncate">
-                      {c.title || 'Untitled conversation'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    {c.agent_label && (
-                      <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
-                        {c.agent_label}
-                      </Badge>
-                    )}
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(c.updated_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  {c.preview && (
-                    <p className="text-xs text-muted-foreground mt-1 truncate">{c.preview}</p>
-                  )}
-                </a>
-              </div>
+              <ConversationListItem
+                key={c.id}
+                conversation={c}
+                isEditing={editingId === c.id}
+                editValue={editValue}
+                onStartEdit={() => startEditing(c.id, c.title)}
+                onEditChange={setEditValue}
+                onSaveEdit={() => saveEdit(c.id)}
+                onCancelEdit={cancelEditing}
+                onDelete={() => setDeletingId(c.id)}
+              />
             ))}
           </div>
         )}
       </ScrollArea>
+
+      <AlertDialog open={!!deletingId} onOpenChange={(open) => { if (!open) setDeletingId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The conversation and all its messages will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
