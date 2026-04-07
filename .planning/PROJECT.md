@@ -31,7 +31,7 @@ Two-step conversational flow: brief collection via AI agent, then email editing 
 
 ### Active
 
-(No active requirements — v1.1 milestone complete pending audit)
+- [ ] Parse and render suggested answer actions from Dify agent — v1.2
 
 ### Recently Validated
 
@@ -45,15 +45,16 @@ Two-step conversational flow: brief collection via AI agent, then email editing 
 - E2E regression suite covering all 5 app routes + 8 critical flows — v1.1 Phase 12
 - Cross-spec DB contamination fixed (resetDatabase helper, workers:1) — v1.1 Phase 12
 
-## Current Milestone: v1.1 Conversation Management
+## Current Milestone: v1.2 Suggested Answers
 
-**Goal:** Give users a dedicated page to browse, organize, and manage all their saved conversations.
+**Goal:** Render clickable action buttons in the chat when the Dify agent sends a `<suggested_answer>` JSON block, enabling one-click responses.
 
 **Target features:**
-- Conversation list page with details (agent, timestamp)
-- Navigate to, rename, and delete conversations
-- Free-text tagging system
-- Tab view per tag (+ All tab)
+- Parse `<suggested_answer>` blocks from agent SSE responses
+- Strip the JSON block from visible message text
+- Render actions as clickable chips/buttons below the assistant message bubble
+- On click: send the action's `prompt` as the user's next message
+- Options disappear after one is clicked
 
 ### Out of Scope
 
@@ -70,7 +71,7 @@ Two-step conversational flow: brief collection via AI agent, then email editing 
 Shipped v1.0 with 12,824 LOC TypeScript across 149 files.
 Tech stack: Next.js 15, React 19, assistant-ui v0.12, better-sqlite3 + Drizzle ORM, Dify API, Tailwind CSS.
 Deployed to Railway with SQLite persistent storage.
-Version: 0.2.0-rc.1
+Version: 0.2.0
 
 ## Constraints
 
@@ -112,4 +113,4 @@ Last updated: 2026-04-07
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-07 after Phase 12 regression-test-suite complete (gap closure verified)*
+*Last updated: 2026-04-07 after milestone v1.2 Suggested Answers started*
